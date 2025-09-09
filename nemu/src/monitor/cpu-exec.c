@@ -36,31 +36,42 @@ void do_int3() {
 
 /* Simulate how the CPU works. */
 void cpu_exec(volatile uint32_t n) {
+	//定义函数 cpu_exec，参数为一个 易变的 32位无符号整数 n。
+	//易变：表示该变量可能在程序的其他部分被修改。作用是告诉编译器不要对该变量进行优化，以确保每次访问时都从内存中读取最新的值
 	if(nemu_state == END) {
 		printf("Program execution has ended. To restart the program, exit NEMU and run again.\n");
 		return;
 	}
+	//如果 nemu_state 的值为 END，则表示程序已经结束执行，输出提示信息并返回
 	nemu_state = RUNNING;
-
+	//否则将 nemu_state 的值设置为 RUNNING，表示程序正在运行
 #ifdef DEBUG
 	volatile uint32_t n_temp = n;
 #endif
-
+	//ifdef和endif之间的代码仅在 宏名 DEBUG 被定义时编译
+	//若DEBUG被定义，则定义一个易变的32位无符号整数 n_temp，并将 n 的值赋给 n_temp
 	setjmp(jbuf);
 
 	for(; n > 0; n --) {
+		//函数执行次数为n。
 #ifdef DEBUG
-		swaddr_t eip_temp = cpu.eip;
+		swaddr_t eip_temp = cpu.eip; //swaddr_t 在 common.h 中被定义为 uint32_t 类型
+		//定义一个 swaddr_t 类型（uint32_t类型）的变量 eip_temp，并将 CPU 的指令指针赋值给它
 		if((n & 0xffff) == 0) {
+			//0xffff转换为二进制为16个1，即1111111111111111，若他与n按位与的结果为0，则表示n是65536的倍数。
+			//也就是说，if的条件每65536次n变化一次时成立
 			/* Output some dots while executing the program. */
+			//翻译：在执行程序时输出一些点
 			fputc('.', stderr);
-		}
+			//fputc的定义：int fputc(int char, FILE *stream)，也就是将字符char写入到流stream中
+		}//当n是65536的倍数时，向流 stderr 写入一个点。
 #endif
 
 		/* Execute one instruction, including instruction fetch,
 		 * instruction decode, and the actual execution. */
+		//翻译：执行一条指令，包括指令获取、指令解码和实际执行
 		int instr_len = exec(cpu.eip);
-
+		//定义int类型的变量 instr_len，并将 exec 函数的返回值赋给它。
 		cpu.eip += instr_len;
 
 #ifdef DEBUG

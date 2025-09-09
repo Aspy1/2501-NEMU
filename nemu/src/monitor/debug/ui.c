@@ -28,7 +28,9 @@ char* rl_gets() {
 }
 
 static int cmd_c(char *args) {
+	//定义静态函数 cmd_c，参数为字符指针 args
 	cpu_exec(-1);
+	//调用 cpu_exec 函数，默认传入-1。
 	return 0;
 }
 

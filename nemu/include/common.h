@@ -19,7 +19,7 @@
 typedef uint8_t bool;
 typedef uint32_t hwaddr_t;
 typedef uint32_t lnaddr_t;
-typedef uint32_t swaddr_t;
+typedef uint32_t swaddr_t; //swaddr_t 在 NEMU 中被定义为 32位无符号整数
 
 typedef uint16_t ioaddr_t;
 
