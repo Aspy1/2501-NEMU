@@ -8,6 +8,10 @@ enum { R_AX, R_CX, R_DX, R_BX, R_SP, R_BP, R_SI, R_DI };
 enum { R_AL, R_CL, R_DL, R_BL, R_AH, R_CH, R_DH, R_BH };
 //定义了三个枚举类型，分别表示32位、16位和8位寄存器的索引 enum允许程序员为一组相关的整数常量赋予有意义的名称
 //例如 R_EAX 对应 0，R_ECX 对应 1，以此类推
+
+//这反映了i386架构中寄存器的层次结构：32位寄存器（如EAX）、16位寄存器（如AX）和8位寄存器（如AL和AH）。
+//试图实现的功能：提供寄存器索引的映射，方便代码中通过索引访问寄存器。
+
 /* TODO: Re-organize the `CPU_state' structure to match the register
  * encoding scheme in i386 instruction format. For example, if we
  * access cpu.gpr[3]._16, we will get the `bx' register; if we access
@@ -20,12 +24,13 @@ enum { R_AL, R_CL, R_DL, R_BL, R_AH, R_CH, R_DH, R_BH };
 提示：使用 'union'。有关寄存器编码方案的更多详细信息，请参阅 i386 手册。*/
 
 typedef struct {
-     struct {
+     union {
 		uint32_t _32;
 		uint16_t _16;
 		uint8_t _8[2];
      } gpr[8];
 //上述结构体的意义是：定义了一个包含8个通用寄存器的结构体，每个寄存器可以访问32位、16位和8位的值。
+//此处存在错误：它们没有使用union，值不会同步变化，违反i386原则 修改为使用union
      /* Do NOT change the order of the GPRs' definitions. */
 	 //翻译：不要更改通用寄存器定义的顺序
      uint32_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
@@ -69,6 +74,7 @@ static inline int check_reg_index(int index) {
 #define reg_w(index) (cpu.gpr[check_reg_index(index)]._16)
 #define reg_b(index) (cpu.gpr[check_reg_index(index) & 0x3]._8[index >> 2])
 //定义了三个宏，分别用于访问32位、16位和8位寄存器的值
+//reg_b的运算方式有误 例如，对于AH（索引4），计算后访问的是CH（gpr[1]._8[1]），而不是AH（gpr[0]._8[1]）
 extern const char* regsl[];
 extern const char* regsw[];
 extern const char* regsb[];
