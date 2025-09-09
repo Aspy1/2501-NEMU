@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
 	
 	/* Receive commands from user. */
 	ui_mainloop();
+	//进入主循环，等待用户输入命令并处理这些命令
 
 	return 0;
 }

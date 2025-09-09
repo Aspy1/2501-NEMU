@@ -4,6 +4,15 @@
 #include "all-instr.h"
 
 typedef int (*helper_fun)(swaddr_t);
+
+/*此处对helper_fun进行了类型定义，具体来说：
+typedef：类型定义关键字，用于创建新类型别名
+int (*helper_fun)：声明一个名为 helper_fun的函数指针
+(swaddr_t)：该函数指针指向的函数接受一个 swaddr_t类型的参数
+int：该函数指针指向的函数返回一个 int类型的值
+整体意思是：helper_fun 是一个函数指针类型，指向的函数接受一个 swaddr_t 类型的参数并返回一个 int 类型的值*/
+//也就是说，opcode_table 是一个函数指针数组。
+
 static make_helper(_2byte_esc);
 
 #define make_group(name, item0, item1, item2, item3, item4, item5, item6, item7) \
@@ -93,7 +102,7 @@ make_group(group7,
 
 /* TODO: Add more instructions!!! */
 
-helper_fun opcode_table [256] = {
+helper_fun opcode_table [256] = { //opcode首次出现，类型为helper_fun。
 /* 0x00 */	inv, inv, inv, inv,
 /* 0x04 */	inv, inv, inv, inv,
 /* 0x08 */	inv, or_r2rm_v, or_rm2r_b, inv,

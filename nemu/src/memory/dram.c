@@ -43,12 +43,14 @@ typedef struct {
 RB rowbufs[NR_RANK][NR_BANK];
 
 void init_ddr3() {
+	//定义void函数 init_ddr3
 	int i, j;
 	for(i = 0; i < NR_RANK; i ++) {
 		for(j = 0; j < NR_BANK; j ++) {
 			rowbufs[i][j].valid = false;
 		}
 	}
+	//执行一个嵌套的循环，作用是初始化 rowbufs 数组中的每个元素的 valid 字段为 false
 }
 
 static void ddr3_read(hwaddr_t addr, void *data) {

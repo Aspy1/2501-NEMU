@@ -86,16 +86,23 @@ static void init_ramdisk() {
 #endif
 
 static void load_entry() {
+	//定义一个静态函数 load_entry 
 	int ret;
 	FILE *fp = fopen("entry", "rb");
+	//定义 FILE 类型的指针 fp，并使用 fopen 函数以二进制、只读模式 ("rb") 打开名为 "entry" 的文件
 	Assert(fp, "Can not open 'entry'");
-
+	//调用 assert 函数，检查文件指针 fp 是否为 NULL，如果为 NULL 则表示文件打开失败，输出错误信息并终止程序运行
 	fseek(fp, 0, SEEK_END);
+	//调用 fseek 函数将文件指针移动到文件末尾 参数0表示偏移量为0，SEEK_END表示从文件末尾开始计算偏移量 目的是为了获取文件的总大小
 	size_t file_size = ftell(fp);
+	//调用 ftell 函数获取当前文件指针的位置（即文件大小），并将其赋值给 file_size 变量
 
 	fseek(fp, 0, SEEK_SET);
+	//调用 fseek 函数将文件指针重新移动到文件开头 参数0表示偏移量为0，SEEK_SET表示从文件开头开始计算偏移量
 	ret = fread(hwa_to_va(ENTRY_START), file_size, 1, fp);
+	//调用 fread 函数从文件中读取数据，并将其存储到内存中
 	assert(ret == 1);
+	//调用 assert 函数，检查 ret 是否等于 1，如果不等于 1 则表示读取失败，程序会输出错误信息并终止运行
 	fclose(fp);
 }
 
@@ -111,8 +118,9 @@ void restart() {
 	load_entry();
 
 	/* Set the initial instruction pointer. */
-	cpu.eip = ENTRY_START;
+	cpu.eip = ENTRY_START; //设置 CPU 的指令指针寄存器 eip 的初始值为 ENTRY_START（0x100000），也就是内存的起始地址
 
 	/* Initialize DRAM. */
 	init_ddr3();
+	//调用 init_ddr3 函数初始化 DRAM，根据定义，DRAM 初始化包括将所有行缓冲区的 valid 字段设置为 false
 }
