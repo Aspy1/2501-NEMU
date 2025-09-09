@@ -7,11 +7,15 @@
  * This is useful when you use the `si' command.
  * You can modify this value as you want.
  */
+//翻译：当执行的指令数少于此值时，指令的汇编代码仅输出到屏幕上，这在使用 `si` 命令时很有用，你可以根据需要修改此值。
 #define MAX_INSTR_TO_PRINT 10
 
 int nemu_state = STOP;
+//初始的 nemu_state 状态为 STOP，表示模拟器当前处于停止状态。
 
 int exec(swaddr_t);
+//声明函数 exec，参数为 swaddr_t 类型，返回值为 int 类型
+//返回值是变化的，表示执行的指令长度。
 
 char assembly[80];
 char asm_buf[128];
@@ -60,6 +64,7 @@ void cpu_exec(volatile uint32_t n) {
 		if((n & 0xffff) == 0) {
 			//0xffff转换为二进制为16个1，即1111111111111111，若他与n按位与的结果为0，则表示n是65536的倍数。
 			//也就是说，if的条件每65536次n变化一次时成立
+			//若n为-1，转化为二进制是一个极大数，会使条件成立最多次。
 			/* Output some dots while executing the program. */
 			//翻译：在执行程序时输出一些点
 			fputc('.', stderr);
@@ -73,6 +78,8 @@ void cpu_exec(volatile uint32_t n) {
 		int instr_len = exec(cpu.eip);
 		//定义int类型的变量 instr_len，并将 exec 函数的返回值赋给它。
 		cpu.eip += instr_len;
+		//将 CPU 的指令指针寄存器 eip 增加 instr_len，指向下一条指令的地址
+		//这实际上是模拟了 CPU 执行指令后的行为，即更新指令指针以指向下一条指令
 
 #ifdef DEBUG
 		print_bin_instr(eip_temp, instr_len);

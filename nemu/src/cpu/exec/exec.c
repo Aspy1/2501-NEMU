@@ -241,6 +241,7 @@ make_helper(exec) {
 	return opcode_table[ ops_decoded.opcode ](eip);
 }
 
+
 static make_helper(_2byte_esc) {
 	eip ++;
 	uint32_t opcode = instr_fetch(eip, 1);
