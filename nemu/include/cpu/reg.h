@@ -14,7 +14,7 @@ enum { R_AL, R_CL, R_DL, R_BL, R_AH, R_CH, R_DH, R_BH };
  * cpu.gpr[1]._8[1], we will get the 'ch' register. Hint: Use `union'.
  * For more details about the register encoding scheme, see i386 manual.
  */
-/*翻译：重新组织 CPU_state 结构以匹配 i386 指令格式中的寄存器编码方案。
+/*题目翻译：重新组织 CPU_state 结构以匹配 i386 指令格式中的寄存器编码方案。
 例如，如果我们访问 cpu.gpr[3]._16，我们将获得 'bx' 寄存器；
 如果我们访问 cpu.gpr[1]._8[1]，我们将获得 'ch' 寄存器。
 提示：使用 'union'。有关寄存器编码方案的更多详细信息，请参阅 i386 手册。*/
