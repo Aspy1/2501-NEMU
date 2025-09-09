@@ -35,6 +35,7 @@ typedef struct {
 	 //翻译：不要更改通用寄存器定义的顺序
      uint32_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
 	 //定义了8个32位的寄存器变量，分别对应通用寄存器数组中的每个寄存器
+	 //这样的定义造成重复，不符合i386原则
      swaddr_t eip;
      //定义了一个 swaddr_t 类型的变量 eip，表示指令指针寄存器 swaddr_t 在 common.h 中被定义为 uint32_t 类型
      union {
@@ -72,9 +73,15 @@ static inline int check_reg_index(int index) {
 //定义了一个内联函数 check_reg_index，用于检查寄存器索引的有效性，确保索引在0到7之间
 #define reg_l(index) (cpu.gpr[check_reg_index(index)]._32)
 #define reg_w(index) (cpu.gpr[check_reg_index(index)]._16)
-#define reg_b(index) (cpu.gpr[check_reg_index(index) & 0x3]._8[index >> 2])
+// #define reg_b(index) (cpu.gpr[check_reg_index(index) & 0x3]._8[index >> 2])
 //定义了三个宏，分别用于访问32位、16位和8位寄存器的值
 //reg_b的运算方式有误 例如，对于AH（索引4），计算后访问的是CH（gpr[1]._8[1]），而不是AH（gpr[0]._8[1]）
+//后四个寄存器（索引4-7）没有高8位，但宏仍然允许访问
+//修改为：
+#define reg_b(index) ( \
+    (index < 4) ? cpu.gpr[check_reg_index(index)]._8_low : \
+    cpu.gpr[check_reg_index(index - 4)]._8_high \
+)
 extern const char* regsl[];
 extern const char* regsw[];
 extern const char* regsb[];
