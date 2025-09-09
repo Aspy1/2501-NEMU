@@ -8,8 +8,10 @@
 extern uint8_t *hw_mem;
 
 /* convert the hardware address in the test program to virtual address in NEMU */
+//翻译：将测试程序中的硬件地址转换为 NEMU 中的虚拟地址
 #define hwa_to_va(p) ((void *)(hw_mem + (unsigned)p))
 /* convert the virtual address in NEMU to hardware address in the test program */
+//翻译：将 NEMU 中的虚拟地址转换为测试程序中的硬件地址
 #define va_to_hwa(p) ((hwaddr_t)((void *)p - (void *)hw_mem))
 
 #define hw_rw(addr, type) *(type *)({\

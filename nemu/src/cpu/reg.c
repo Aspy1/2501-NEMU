@@ -1,12 +1,15 @@
+//整个文件模拟了一个CPU寄存器的状态，并提供了一个测试函数来验证寄存器的读写操作是否正确。
 #include "nemu.h"
 #include <stdlib.h>
 #include <time.h>
 
 CPU_state cpu;
+//定义了一个全局变量 cpu，类型为 CPU_state，表示当前 CPU 的状态
 
 const char *regsl[] = {"eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"};
 const char *regsw[] = {"ax", "cx", "dx", "bx", "sp", "bp", "si", "di"};
 const char *regsb[] = {"al", "cl", "dl", "bl", "ah", "ch", "dh", "bh"};
+//定义了三个字符串数组，分别表示32位、16位和8位寄存器的名称
 
 void reg_test() {
 	srand(time(0));
@@ -41,4 +44,4 @@ void reg_test() {
 
 	assert(eip_sample == cpu.eip);
 }
-
+//（待分析）测试函数的逻辑
