@@ -41,6 +41,8 @@ static int cmd_q(char *args) {
 static int cmd_help(char *args);
 
 static int cmd_si(char *args);
+
+static int cmd_info(char *args);
 	
 static struct {
 	char *name;
@@ -50,7 +52,8 @@ static struct {
 	{ "help", "Display informations about all supported commands", cmd_help },
 	{ "c", "Continue the execution of the program", cmd_c },
 	{ "q", "Exit NEMU", cmd_q },
-	{ "si", "The program pauses after single-stepping through N instructions. If N is not specified, it defaults to 1.",cmd_si}
+	{ "si", "The program pauses after single-stepping through N instructions. If N is not specified, it defaults to 1.",cmd_si},
+	{ "info","Print register status or watchpoint information",cmd_info}
 	/* TODO: Add more commands */
 
 };
@@ -91,6 +94,33 @@ static int cmd_si(char *args) {
         cpu_exec(1);
     }
     return 0;
+}
+
+static int cmd_info(char*args){
+	char *arg = strtok(NULL," ");
+	if(arg == NULL){
+		printf("Please specify 'r' for registers or 'w' for watchpoints.\n");
+		return 0;
+	}
+	else{
+		if(strcmp(arg,"r")==0){
+			//打印寄存器状态
+			for(int i=0;i<8;i++){
+				printf("%s\t0x%08x\t%d\n",regsl[i],cpu.gpr[i]._32,cpu.gpr[i]._32);
+			}
+			
+			return 0;
+		}
+		else if(strcmp(arg,"w")==0){
+			//打印监视点信息
+			
+			return 0;
+		}
+		else{
+			printf("Unknown argument '%s'. Please specify 'r' for registers or 'w' for watchpoints.\n",arg);
+			return 0;
+		}
+	}
 }
 
 void ui_mainloop() {
