@@ -40,7 +40,7 @@ static int cmd_q(char *args) {
 
 static int cmd_help(char *args);
 
-//static int cmd_si(int n)
+static int cmd_si(char *args);
 	
 static struct {
 	char *name;
@@ -50,7 +50,7 @@ static struct {
 	{ "help", "Display informations about all supported commands", cmd_help },
 	{ "c", "Continue the execution of the program", cmd_c },
 	{ "q", "Exit NEMU", cmd_q },
-	//{ "si [N]", "The program pauses after single-stepping through N instructions. If N is not specified, it defaults to 1.",cmd_si}
+	{ "si", "The program pauses after single-stepping through N instructions. If N is not specified, it defaults to 1.",cmd_si}
 	/* TODO: Add more commands */
 
 };
@@ -78,6 +78,19 @@ static int cmd_help(char *args) {
 		printf("Unknown command '%s'\n", arg);
 	}
 	return 0;
+}
+
+static int cmd_si(char *args) {
+    char *arg = strtok(NULL, " ");
+    int times = 1;
+    if(arg != NULL) {
+        times = atoi(arg);
+        if(times <= 0) times = 1; // 防止非法输入
+    }
+    for(int i = 0; i < times; i++) {
+        cpu_exec(1);
+    }
+    return 0;
 }
 
 void ui_mainloop() {
