@@ -149,9 +149,12 @@ static int cmd_x(char *args) {
 	else
 	{
 		for(int i = 0;i < N;i++){
-			printf("0x%08x\n", cpu.eip + i );
+			//printf("0x%08x\n", cpu.eip + i );//打印N个内存地址，起始地址为eip. 作为测试
+			//起始地址替换为arg2表达式的值
+			printf("0x%08x: 0x%08x\n", expr(arg2, NULL) + i*4, hwaddr_read(expr(arg2, NULL) + i*4, 4));
+			//打印从expr(arg2)开始的N个4字节内容
 		}
-		//打印N个内存地址，起始地址为eip
+		
 	}
 	return 0;
 }
