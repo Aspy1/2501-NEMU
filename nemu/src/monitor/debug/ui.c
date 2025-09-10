@@ -107,7 +107,11 @@ static int cmd_info(char*args){
 			//打印寄存器状态
 			for(int i=0;i<8;i++){
 				printf("%s\t0x%08x\t%d\n",regsl[i],cpu.gpr[i]._32,cpu.gpr[i]._32);
-			}
+			}//当前打印32位寄存器值
+			printf("eip\t0x%08x\t%d\n",cpu.eip,cpu.eip);
+			printf("eflags\t0x%08x\n",cpu.eflags.val);
+			printf("CF=%u ZF=%u SF=%u IF=%u OF=%u\n",cpu.eflags.CF,cpu.eflags.ZF,cpu.eflags.SF,cpu.eflags.IF,cpu.eflags.OF);
+			//打印部分标志位
 			
 			return 0;
 		}
