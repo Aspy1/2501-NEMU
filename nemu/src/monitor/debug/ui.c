@@ -43,6 +43,8 @@ static int cmd_help(char *args);
 static int cmd_si(char *args);
 
 static int cmd_info(char *args);
+
+static int cmd_x(char *args);
 	
 static struct {
 	char *name;
@@ -53,7 +55,8 @@ static struct {
 	{ "c", "Continue the execution of the program", cmd_c },
 	{ "q", "Exit NEMU", cmd_q },
 	{ "si", "The program pauses after single-stepping through N instructions. If N is not specified, it defaults to 1.",cmd_si},
-	{ "info","Print register status or watchpoint information",cmd_info}
+	{ "info","Print register status or watchpoint information",cmd_info},
+	{ "x","Examine memory at a given address",cmd_x}
 	/* TODO: Add more commands */
 
 };
@@ -97,6 +100,7 @@ static int cmd_si(char *args) {
 }
 
 static int cmd_info(char*args){
+	
 	char *arg = strtok(NULL," ");
 	if(arg == NULL){
 		printf("Please specify 'r' for registers or 'w' for watchpoints.\n");
@@ -127,6 +131,13 @@ static int cmd_info(char*args){
 			return 0;
 		}
 	}
+}
+
+static int cmd_x(char *args) {
+	char *arg1 = strtok(NULL, " ");
+	char *arg2 = strtok(NULL, " ");
+	printf("arg1: %s, arg2: %s\n", arg1, arg2); // Debugging line
+	return 0;
 }
 
 void ui_mainloop() {
