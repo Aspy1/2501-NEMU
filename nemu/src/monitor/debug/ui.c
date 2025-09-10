@@ -109,6 +109,7 @@ static int cmd_info(char*args){
 				printf("%s\t0x%08x\t%d\n",regsl[i],cpu.gpr[i]._32,cpu.gpr[i]._32);
 			}
 			//当前打印32位寄存器值
+
 			printf("eip\t0x%08x\t%d\n",cpu.eip,cpu.eip);
 			printf("eflags\t0x%08x\n",cpu.eflags.val);
 			printf("CF=%u ZF=%u SF=%u IF=%u OF=%u\n",cpu.eflags.CF,cpu.eflags.ZF,cpu.eflags.SF,cpu.eflags.IF,cpu.eflags.OF);
@@ -118,7 +119,7 @@ static int cmd_info(char*args){
 		}
 		else if(strcmp(arg,"w")==0){
 			//打印监视点信息
-			
+			//暂时不实现
 			return 0;
 		}
 		else{
