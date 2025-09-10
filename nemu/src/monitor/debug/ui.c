@@ -148,13 +148,15 @@ static int cmd_x(char *args) {
 	}
 	else
 	{
-		for(int i = 0;i < N;i++){
-			//printf("0x%08x\n", cpu.eip + i );//打印N个内存地址，起始地址为eip. 作为测试
-			//起始地址替换为arg2表达式的值
-			printf("0x%08x", expr(arg2, NULL) + i*4);
-			//打印从expr(arg2)开始的N个4字节内容
-		}
-	}
+        for(int i = 0;i < N;i++){
+            //printf("0x%08x\n", cpu.eip + i );//打印N个内存地址，起始地址为eip. 作为测试
+            //起始地址替换为arg2表达式的值
+            swaddr_t addr = expr(arg2, NULL) + i*4;
+            uint32_t data = swaddr_read(addr, 4); // 读取4字节内容
+            printf("0x%08x: 0x%08x\n", addr, data);
+            //打印从expr(arg2)开始的N个4字节内容
+        }
+    }
 	return 0;
 }
 
