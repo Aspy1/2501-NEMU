@@ -137,6 +137,22 @@ static int cmd_x(char *args) {
 	char *arg1 = strtok(NULL, " ");
 	char *arg2 = strtok(NULL, " ");
 	printf("arg1: %s, arg2: %s\n", arg1, arg2); // Debugging line
+	if(arg1 == NULL || arg2 == NULL) {
+		printf("Usage: x N EXPR\n");
+		return 0;
+	}
+	int N = atoi(arg1);
+	if (N <= 0) {
+		printf("N should be a positive integer.\n");
+		return 0;
+	}
+	else
+	{
+		for(int i = 0;i < N;i++){
+			printf("0x%08x\n", cpu.eip + i );
+		}
+		//打印N个内存地址，起始地址为eip
+	}
 	return 0;
 }
 
