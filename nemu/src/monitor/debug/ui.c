@@ -100,39 +100,32 @@ static int cmd_si(char *args) {
 }
 
 static int cmd_info(char*args){
-	
-	char *arg = strtok(NULL," ");
-	if(arg == NULL){
-		printf("Please specify 'r' for registers or 'w' for watchpoints.\n");
-		return 0;
-	}
-	else{
-		if(strcmp(arg,"r")==0){
-			//打印寄存器状态
-			for(int i=0;i<8;i++){
-				printf("%s\t0x%08x\t%d\n",regsl[i],cpu.gpr[i]._32,cpu.gpr[i]._32);
-			}
-			//当前打印32位寄存器值
-
-			printf("eip\t0x%08x\t%d\n",cpu.eip,cpu.eip);
-			printf("eflags\t0x%08x\n",cpu.eflags.val);
-			printf("CF=%u ZF=%u SF=%u IF=%u OF=%u\n",cpu.eflags.CF,cpu.eflags.ZF,cpu.eflags.SF,cpu.eflags.IF,cpu.eflags.OF);
-			//打印部分标志位
-			
-			return 0;
-		}
-		else if(strcmp(arg,"w")==0){
-			//打印监视点信息
-			//暂时不实现
-			return 0;
-		}
-		else{
-			printf("Unknown argument '%s'. Please specify 'r' for registers or 'w' for watchpoints.\n",arg);
-			return 0;
-		}
+// filepath: d:\2501 计算机系统综合实践\2501-NEMU\nemu\src\monitor\debug\ui.c
+    char *arg = strtok(NULL," ");
+    if(arg == NULL){
+        printf("Please specify 'r' for registers or 'w' for watchpoints.\n");
+        return 0;
+    }
+    else{
+        if(strcmp(arg,"r")==0){
+            //只打印四个寄存器，格式为 $寄存器名 (十六进制寄存器内容)
+            printf("$eax (0x%08x)\n", cpu.gpr[0]._32);
+            printf("$ecx (0x%08x)\n", cpu.gpr[1]._32);
+            printf("$edx (0x%08x)\n", cpu.gpr[2]._32);
+            printf("$ebx (0x%08x)\n", cpu.gpr[3]._32);
+            return 0;
+        }
+        else if(strcmp(arg,"w")==0){
+            //打印监视点信息
+            //暂时不实现
+            return 0;
+        }
+        else{
+            printf("Unknown argument '%s'. Please specify 'r' for registers or 'w' for watchpoints.\n",arg);
+            return 0;
+        }
 	}
 }
-
 static int cmd_x(char *args) {
 	char *arg1 = strtok(NULL, " ");
 	char *arg2 = strtok(NULL, " ");
