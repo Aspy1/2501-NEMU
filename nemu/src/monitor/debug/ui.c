@@ -129,7 +129,7 @@ static int cmd_info(char*args){
 static int cmd_x(char *args) {
 	char *arg1 = strtok(NULL, " ");
 	char *arg2 = strtok(NULL, " ");
-	printf("arg1: %s, arg2: %s\n", arg1, arg2); // Debugging line
+	// printf("arg1: %s, arg2: %s\n", arg1, arg2); // Debugging line
 	if(arg1 == NULL || arg2 == NULL) {
 		printf("Usage: x N EXPR\n");
 		return 0;
@@ -147,7 +147,7 @@ static int cmd_x(char *args) {
         for(int i = 0; i < N; i++){
             swaddr_t addr = base_addr + i*4;
             uint32_t data = swaddr_read(addr, 4); // 读取4字节内容
-            printf("0x%08x: 0x%08x\n", addr, data);
+            printf("0x%08x ", data);
             //打印从base_addr开始的N个4字节内容
         }
     }
