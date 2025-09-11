@@ -21,12 +21,18 @@ static struct rule {
 	/* TODO: Add more rules.
 	 * Pay attention to the precedence level of different rules.
 	 */
+	//题目翻译：注意不同规则的优先级
 
 	{" +",	NOTYPE},				// spaces
 	{"\\+", '+'},					// plus
+	//解释：\\表示斜杠，而表示+是斜杠+，所以\\+表示加号本身
+	//这也说明了\\转义的优先级更高
 	{"==", EQ}						// equal
+	//等号并没有特殊含义，因此不需要加反斜杠
 };
-
+// 通常情况下 忽略所有的空格，优先级：小括号 高于乘除 高于加减 
+// 转义字符\\表示一个斜杠
+// 正则表达式中，+ * ? . ^ $ | () [] {} 都是有特殊含义的字符，如果要表示它们本身，需要在前面加上反斜杠\进行转义 比如\\+表示加号本身
 #define NR_REGEX (sizeof(rules) / sizeof(rules[0]) )
 
 static regex_t re[NR_REGEX];

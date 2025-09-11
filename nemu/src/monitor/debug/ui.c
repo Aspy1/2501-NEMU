@@ -126,6 +126,7 @@ static int cmd_info(char*args){
         }
 	}
 }
+
 static int cmd_x(char *args) {
 	char *arg1 = strtok(NULL, " ");
 	char *arg2 = strtok(NULL, " ");
