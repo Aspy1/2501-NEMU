@@ -122,7 +122,13 @@ static bool make_token(char *e) {
 							printf("too many tokens\n");
 							return false;
 						}
-						
+						tokens[nr_token].type = NUM;
+						// 复制数字字符串，确保不超过缓冲区大小
+						int len = substr_len < 31 ? substr_len : 31;
+						strncpy(tokens[nr_token].str, substr_start, len);
+						tokens[nr_token].str[len] = '\0';
+						nr_token++;
+						break;
 
 
 					default: panic("please implement me");
