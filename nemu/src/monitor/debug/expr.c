@@ -289,3 +289,5 @@ uint32_t expr(char *e, bool *success) {
     
     return result;
 }
+//p (!($ecx != 0x00008000) &&($eax ==0x00000000))+0x12345678
+//p 0xc0100000-(($edx+0x1234-10)*16)/4
