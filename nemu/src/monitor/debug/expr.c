@@ -269,10 +269,13 @@ uint32_t eval_factor() {
     
     // 应用一元操作
     if (op == NOT) {
-        return operand ? 0 : 1;
-    } else { 
-        // 解引用处理...
+    // 显式检查操作数是否为0
+    if (operand == 0) {
+        return 1;  // !0 = 1
+    } else {
+        return 0;  // !(非0) = 0
     }
+}
 
 }
     
