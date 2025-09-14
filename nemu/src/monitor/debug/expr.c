@@ -6,6 +6,7 @@
 //翻译：我们使用 POSIX 正则表达式函数来处理正则表达式
 #include <sys/types.h>
 #include <regex.h>
+#include <stdlib.h>
 
 enum {
 	NOTYPE = 256, EQ = 257, NUM = 258
@@ -129,7 +130,6 @@ static bool make_token(char *e) {
 						strncpy(tokens[nr_token].str, substr_start, len);
 						tokens[nr_token].str[len] = '\0';
 						nr_token++;
-						position += substr_len;
 						break;
 						case '+': case '-': case '*': case '/': case EQ: case '(': case ')':
                         if (nr_token >= 32) {
@@ -168,7 +168,22 @@ uint32_t expr(char *e, bool *success) {
 	//如果词法分析失败，设置success为false并返回0
 
 	/* TODO: Insert codes to evaluate the expression. */
-	panic("please implement me");
-	return 0;
+	*success = true;
+    uint32_t result = 0;
+    int i = 0;
+    int sign = 1;
+    while (i < nr_token) {
+        if (tokens[i].type == NUM) {
+            uint32_t val = atoi(tokens[i].str);
+            result += sign * val;
+         sign = 1;
+        } else if (tokens[i].type == '+') {
+            sign = 1;
+        } else if (tokens[i].type == '-') {
+            sign = -1;
+        }
+        i++;
+    }
+    return result;
 }
 
