@@ -9,7 +9,14 @@
 #include <stdlib.h>
 
 enum {
-	NOTYPE = 256, EQ = 257, NUM = 258
+	NOTYPE = 256, EQ = 257, NUM = 258,
+	NEQ = 259,    // 不等于 !=
+	OR = 260,     // 逻辑或 ||
+	AND = 261,    // 逻辑与 &&
+	NOT = 262,    // 逻辑非 !
+	DEREF = 263,  // 指针解引用 *
+	HEX = 264,    // 十六进制数
+	REG = 265     // 寄存器
 
 	/* TODO: Add more token types */
 
@@ -27,6 +34,9 @@ static struct rule {
 	//题目翻译：注意不同规则的优先级
 
 	{" ", NOTYPE},				// spaces
+	{"\\|\\|", OR},				// 逻辑或 || 
+	{"&&", AND},				// 逻辑与 &&
+	{"!=", NEQ},				// 不等于 !=
 	{"\\+", '+'},					// plus
 	//解释：\\表示斜杠，而表示+是斜杠+，所以\\+表示加号本身
 	//这也说明了\\转义的优先级更高
@@ -36,8 +46,10 @@ static struct rule {
 	{"-",'-'},
 	{"\\(",'('},
 	{"\\)",')'},
+	{"!", NOT},					// 逻辑非 !
 	//等号并没有特殊含义，因此不需要加反斜杠
-	//接下来判断十进制整数
+	{"0x[0-9a-fA-F]+", HEX},	// 十六进制数
+	{"\\$[a-zA-Z0-9_]+", REG},	// 寄存器 
 	{"[0-9]+", NUM},
 
 };
@@ -45,6 +57,30 @@ static struct rule {
 // 转义字符\\表示一个斜杠
 // 正则表达式中，+ * () / 都是有特殊含义的字符，如果要表示它们本身，需要在前面加上反斜杠\进行转义 比如\\+表示加号本身
 #define NR_REGEX (sizeof(rules) / sizeof(rules[0]))
+typedef struct {
+	char name[16];
+	uint32_t value;
+} Register;
+Register registers[] = {
+	{"eax", 0},
+	{"ebx", 0},
+	{"ecx", 0},
+	{"edx", 0},
+	{"esp", 0},
+	{"ebp", 0},
+	{"eip", 0},
+};
+#define NUM_REGISTERS (sizeof(registers) / sizeof(registers[0]))
+uint32_t get_register_value(const char *name) {
+	for (int i = 0; i < NUM_REGISTERS; i++) {
+		if (strcmp(registers[i].name, name) == 0) {
+			return registers[i].value;
+		}
+	}
+	printf("Unknown register: %s\n", name);
+	return 0;
+}// 获取寄存器值
+
 
 static regex_t re[NR_REGEX];
 
@@ -65,11 +101,14 @@ void init_regex() {
 	}
 }
 // 初始化所有正则表达式，只编译一次
+
 typedef struct token {
 	int type;
 	char str[32];
 } Token;
 //定义一个结构体类型 Token，包含两个成员：type 和 str
+
+
 
 Token tokens[32];
 int nr_token;  //记录识别出的token的数量
@@ -120,6 +159,7 @@ static bool make_token(char *e) {
 					case NOTYPE: 
 					break; //忽略空格 但是要更新position
 					case NUM:
+					case HEX:
 					    if (nr_token >= 32) {
 							printf("too many tokens\n");
 							return false;
@@ -131,7 +171,19 @@ static bool make_token(char *e) {
 						tokens[nr_token].str[len] = '\0';
 						nr_token++;
 						break;
-						case '+': case '-': case '*': case '/': case EQ: case '(': case ')':
+						case REG:  // 处理寄存器
+						if (nr_token >= 32) {
+							printf("too many tokens\n");
+							return false;
+						}
+						tokens[nr_token].type = REG;
+						// 复制寄存器名称
+						int reg_len = substr_len < 31 ? substr_len : 31;
+						strncpy(tokens[nr_token].str, substr_start, reg_len);
+						tokens[nr_token].str[reg_len] = '\0';
+						nr_token++;
+						break;
+						case '+': case '-': case '*': case '/': case EQ: case '(': case ')': case NEQ: case OR: case AND: case NOT:
                         if (nr_token >= 32) {
                             printf("too many tokens\n");
                             return false;
@@ -164,71 +216,99 @@ static int pos = 0;// 当前分析到的 token 下标
 
 uint32_t eval_expr();
 
+uint32_t eval_unary();
+
 // 解析因子（数字或括号表达式）
+
 uint32_t eval_factor() {
-    // 如果是数字
+    // 处理一元操作符：逻辑非!和解引用*
+    if (tokens[pos].type == NOT || tokens[pos].type == '*') {
+        int op = tokens[pos].type;
+        pos++; // 跳过操作符
+        
+        // 获取操作数
+        uint32_t operand = eval_factor();
+        
+        // 应用一元操作
+        if (op == NOT) {
+            return !operand; // 逻辑非：非0为0，0为1
+        } else { // 解引用 *
+            // 这里需要实现内存访问逻辑
+            // 假设有一个函数 read_memory(addr) 返回地址处的值
+            // return read_memory(operand);
+            printf("Dereference not implemented for address 0x%x\n", operand);
+            return 0;
+        }
+    }
+    
+    // 处理数字
     if (tokens[pos].type == NUM) {
-        // 将数字字符串转换为整数
         uint32_t val = atoi(tokens[pos].str);
-        // 移动到下一个 token
         pos++;
         return val;
     }
-    // 如果是左括号
-    else if (tokens[pos].type == '(') {
-        // 跳过左括号
+    
+    // 处理十六进制数
+    if (tokens[pos].type == HEX) {
+        uint32_t val = strtol(tokens[pos].str, NULL, 16);
         pos++;
-        // 递归解析括号内的表达式
-        uint32_t val = eval_expr();
+        return val;
+    }
+    
+    // 处理寄存器
+    if (tokens[pos].type == REG) {
+        // 跳过$符号，获取寄存器名称
+        const char *reg_name = tokens[pos].str + 1;
+        uint32_t val = get_register_value(reg_name);
+        pos++;
+        return val;
+    }
+    
+    // 处理括号表达式
+    if (tokens[pos].type == '(') {
+        pos++; // 跳过左括号
+        uint32_t val = eval_expr(); // 递归解析括号内表达式
         
-        // 支持括号内的 == 运算
-        if (pos < nr_token && tokens[pos].type == EQ) {
-            // 跳过 == 运算符
+        // 支持括号内的 == 和 != 运算
+        if (pos < nr_token && (tokens[pos].type == EQ || tokens[pos].type == NEQ)) {
+            int op = tokens[pos].type;
             pos++;
-            // 解析 == 右边的表达式
             uint32_t rhs = eval_expr();
-            // 比较左右两边的值是否相等
-            val = (val == rhs) ? 1 : 0;
+            if (op == EQ) {
+                val = (val == rhs) ? 1 : 0;
+            } else { // NEQ
+                val = (val != rhs) ? 1 : 0;
+            }
         }
         
-        // 检查是否有右括号
         if (pos < nr_token && tokens[pos].type == ')') {
-            // 跳过右括号
-            pos++;
+            pos++; // 跳过右括号
         } else {
-            // 缺少右括号，报错
             panic("Missing closing parenthesis");
         }
         return val;
     }
-    // 既不是数字也不是括号，报错
+    
     panic("Invalid factor");
     return 0;
 }
 
 // 解析项（乘除运算）
 uint32_t eval_term() {
-    // 先解析一个因子
     uint32_t val = eval_factor();
     
-    // 处理连续的乘除运算
     while (pos < nr_token && (tokens[pos].type == '*' || tokens[pos].type == '/')) {
-        // 记录运算符
         int op = tokens[pos].type;
-        // 跳过运算符
         pos++;
-        // 解析下一个因子
         uint32_t rhs = eval_factor();
         
-        // 根据运算符进行计算
         if (op == '*') {
-            val *= rhs;   // 乘法
+            val *= rhs;
         } else if (op == '/') {
             if (rhs == 0) {
-                // 除零错误
                 panic("Division by zero");
             }
-            val /= rhs; // 除法
+            val /= rhs;
         }
     }
     return val;
@@ -236,70 +316,84 @@ uint32_t eval_term() {
 
 // 解析表达式（加减运算）
 uint32_t eval_add_sub() {
-    // 先解析一个项
     uint32_t val = eval_term();
     
-    // 处理连续的加减运算
     while (pos < nr_token && (tokens[pos].type == '+' || tokens[pos].type == '-')) {
-        // 记录运算符
         int op = tokens[pos].type;
-        // 跳过运算符
         pos++;
-        // 解析下一个项
         uint32_t rhs = eval_term();
         
-        // 根据运算符进行计算
         if (op == '+') {
-            val += rhs; // 加法
+            val += rhs;
         } else if (op == '-') {
-            val -= rhs; // 减法
+            val -= rhs;
         }
     }
     return val;
 }
 
-// 解析表达式（处理 == 运算）
-uint32_t eval_expr() {
-    // 先解析加减运算
+// 解析表达式（处理 == 和 != 运算）
+uint32_t eval_eq_neq() {
     uint32_t val = eval_add_sub();
     
-    // 处理 == 运算
-    if (pos < nr_token && tokens[pos].type == EQ) {
-        // 跳过 == 运算符
+    while (pos < nr_token && (tokens[pos].type == EQ || tokens[pos].type == NEQ)) {
+        int op = tokens[pos].type;
         pos++;
-        // 解析右边的表达式
         uint32_t rhs = eval_add_sub();
-        // 比较左右两边的值是否相等
-        val = (val == rhs) ? 1 : 0;
+        
+        if (op == EQ) {
+            val = (val == rhs) ? 1 : 0;
+        } else { // NEQ
+            val = (val != rhs) ? 1 : 0;
+        }
     }
     return val;
 }
 
-// 表达式主入口，负责词法分析和递归求值
+// 解析表达式（处理 && 运算）
+uint32_t eval_and() {
+    uint32_t val = eval_eq_neq();
+    
+    while (pos < nr_token && tokens[pos].type == AND) {
+        pos++;
+        uint32_t rhs = eval_eq_neq();
+        // 逻辑与：只有两边都为真（非0）才为真
+        val = (val && rhs) ? 1 : 0;
+    }
+    return val;
+}
+
+// 解析表达式（处理 || 运算）
+uint32_t eval_expr() {
+    uint32_t val = eval_and();
+    
+    while (pos < nr_token && tokens[pos].type == OR) {
+        pos++;
+        uint32_t rhs = eval_and();
+        // 逻辑或：只要有一边为真（非0）就为真
+        val = (val || rhs) ? 1 : 0;
+    }
+    return val;
+}
+
+// 表达式主入口
 uint32_t expr(char *e, bool *success) {
-    // 进行词法分析
     if(!make_token(e)) {
-        // 词法分析失败
         *success = false;
         return 0;
     }
     
-    // 初始化成功标志
     *success = true;
-    // 重置 token 位置指针
     pos = 0;
     
-    // 递归求值
     uint32_t result = eval_expr();
     
     // 检查是否处理了所有 token
     if (pos < nr_token) {
-        // 还有未处理的 token，报错
         printf("Unexpected token at position %d: type=%d\n", pos, tokens[pos].type);
         *success = false;
         return 0;
     }
     
     return result;
-}//标记测试正确
-
+}
