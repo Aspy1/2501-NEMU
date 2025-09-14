@@ -13,8 +13,8 @@ enum {
 
 	/* TODO: Add more token types */
 
-};
-//enum 的作用是 定义一组命名的整数常量
+};// 定义 token 类型枚举
+
 //NOTYPE从256开始的原因是 ASCII 码中 0-255 已经被占用
 static struct rule {
 	char *regex;
@@ -64,7 +64,7 @@ void init_regex() {
 		}
 	}
 }
-
+// 初始化所有正则表达式，只编译一次
 typedef struct token {
 	int type;
 	char str[32];
@@ -158,32 +158,62 @@ static bool make_token(char *e) {
 	return true; 
 }
 
-uint32_t expr(char *e, bool *success) {
-	if(!make_token(e)) {
-		*success = false;
-		return 0;
-	}
-	//expr的解释：接受一个字符串表达式e，并通过指针success返回计算是否成功
-	//首先调用make_token函数对表达式进行词法分析，将结果存储在tokens数组中
-	//如果词法分析失败，设置success为false并返回0
+// 获取当前 token
+// 递归下降分析相关变量和函数
+static int pos = 0;// 当前分析到的 token 下标
 
-	/* TODO: Insert codes to evaluate the expression. */
-	*success = true;
-    uint32_t result = 0;
-    int i = 0;
-    int sign = 1;
-    while (i < nr_token) {
-        if (tokens[i].type == NUM) {
-            uint32_t val = atoi(tokens[i].str);
-            result += sign * val;
-         sign = 1;
-        } else if (tokens[i].type == '+') {
-            sign = 1;
-        } else if (tokens[i].type == '-') {
-            sign = -1;
-        }
-        i++;
+uint32_t eval_expr();//声明
+
+// 解析因子（数字或括号表达式）
+uint32_t eval_factor() {
+    if (tokens[pos].type == NUM) { // 如果是数字
+        uint32_t val = atoi(tokens[pos].str); // 转为整数
+        pos++; // 移动到下一个 token
+        return val;
+    } else if (tokens[pos].type == '(') { // 如果是左括号
+        pos++; // 跳过左括号
+        uint32_t val = eval_expr(); // 递归解析括号内表达式
+        if (tokens[pos].type == ')') pos++; // 跳过右括号
+        return val;
     }
-    return result;
+    panic("Invalid factor"); // 不是数字也不是括号，报错
+    return 0;
+}
+
+// 解析项（乘除运算）
+uint32_t eval_term() {
+    uint32_t val = eval_factor(); // 先解析一个因子
+    while (pos < nr_token && (tokens[pos].type == '*' || tokens[pos].type == '/')) {
+        int op = tokens[pos].type; // 记录运算符
+        pos++; // 跳过运算符
+        uint32_t rhs = eval_factor(); // 解析下一个因子
+        if (op == '*') val *= rhs;   // 乘法
+        else if (op == '/') val /= rhs; // 除法
+    }
+    return val;
+}
+
+// 解析表达式（加减运算）
+uint32_t eval_expr() {
+    uint32_t val = eval_term(); // 先解析一个项
+    while (pos < nr_token && (tokens[pos].type == '+' || tokens[pos].type == '-')) {
+        int op = tokens[pos].type; // 记录运算符
+        pos++; // 跳过运算符
+        uint32_t rhs = eval_term(); // 解析下一个项
+        if (op == '+') val += rhs; // 加法
+        else if (op == '-') val -= rhs; // 减法
+    }
+    return val;
+}
+
+// 表达式主入口，负责词法分析和递归求值
+uint32_t expr(char *e, bool *success) {
+    if(!make_token(e)) { // 词法分析失败
+        *success = false;
+        return 0;
+    }
+    *success = true;
+    pos = 0; // 初始化 token 下标
+    return eval_expr(); // 递归求值
 }
 
