@@ -3,11 +3,13 @@
 #include <regex.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 enum {
     NOTYPE = 256, EQ = 257, NUM = 258,
     NEQ = 259, OR = 260, AND = 261, 
-    NOT = 262, DEREF = 263, HEX = 264, REG = 265
+    NOT = 262, DEREF = 263, HEX = 264, REG = 265,
+    NEG = 266, REF = 267
 };
 
 static struct rule {
@@ -46,7 +48,6 @@ typedef struct token {
 
 Token tokens[32];
 int nr_token;
-static int pos = 0;
 
 static bool make_token(char *e) {
     int position = 0;
@@ -116,131 +117,147 @@ uint32_t get_register_value(const char *name) {
     return 0;
 }
 
-// 函数原型声明
-uint32_t parse_expression(int min_priority);
-uint32_t parse_factor();
-uint32_t handle_unary_operator(int op, uint32_t operand);
-uint32_t handle_binary_operator(int op, uint32_t left, uint32_t right);
-
 // 获取运算符优先级
-int get_priority(int token_type) {
+int op_prec(int token_type) {
     switch(token_type) {
-        case OR: return 1;
-        case AND: return 2;
-        case EQ: case NEQ: return 3;
-        case '+': case '-': return 4;
-        case '*': case '/': return 5;
-        case NOT: case DEREF: return 6; // 一元操作符优先级最高
-        default: return 0;
+        case OR: return 9;
+        case AND: return 8;
+        case EQ: case NEQ: return 4;
+        case '+': case '-': return 2;
+        case '*': case '/': return 1;
+        case NOT: case NEG: case REF: return 0; // 一元操作符优先级最高
+        default: return -1; // 非运算符
     }
 }
 
-// 处理一元操作符
-uint32_t handle_unary_operator(int op, uint32_t operand) {
-    switch(op) {
-        case NOT: return operand == 0 ? 1 : 0;
-        case '*': 
-            // 解引用操作 - 暂时不支持
-            printf("Dereference operator * is not implemented\n");
-            exit(1);
-        case '-': return -operand;
-        default: return operand;
-    }
+// 比较两个运算符的优先级
+static inline int op_prec_cmp(int t1, int t2) {
+    return op_prec(t1) - op_prec(t2);
 }
 
-// 处理二元操作符
-uint32_t handle_binary_operator(int op, uint32_t left, uint32_t right) {
-    switch(op) {
-        case '+': return left + right;
-        case '-': return left - right;
-        case '*': return left * right;
-        case '/': 
-            if (right == 0) {
-                printf("Division by zero\n");
-                exit(1);
+// 在区间[s, e]内找到主导运算符
+static int find_dominated_op(int s, int e, bool *success) {
+    int i;
+    int bracket_level = 0;
+    int dominated_op = -1;
+    
+    for(i = s; i <= e; i++) {
+        switch(tokens[i].type) {
+            case REG: case NUM: case HEX: break;
+            
+            case '(': 
+                bracket_level++;
+                break;
+                
+            case ')': 
+                bracket_level--;
+                if(bracket_level < 0) {
+                    *success = false;
+                    return -1;
+                }
+                break;
+                
+            default:
+                if(bracket_level == 0) {
+                    if(dominated_op == -1 || 
+                       op_prec_cmp(tokens[dominated_op].type, tokens[i].type) < 0 ||
+                       (op_prec_cmp(tokens[dominated_op].type, tokens[i].type) == 0 && 
+                        tokens[i].type != NOT && tokens[i].type != NEG && tokens[i].type != REF)) {
+                        dominated_op = i;
+                    }
+                }
+                break;
+        }
+    }
+    
+    *success = (dominated_op != -1);
+    return dominated_op;
+}
+
+// 递归计算表达式
+static uint32_t eval(int s, int e, bool *success) {
+    if(s > e) {
+        *success = false;
+        return 0;
+    }
+    else if(s == e) {
+        // 单个token
+        uint32_t val;
+        switch(tokens[s].type) {
+            case REG:
+                val = get_register_value(tokens[s].str + 1); // 跳过'$'
+                break;
+                
+            case NUM:
+                val = atoi(tokens[s].str);
+                break;
+                
+            case HEX:
+                val = strtol(tokens[s].str, NULL, 16);
+                break;
+                
+            default:
+                *success = false;
+                return 0;
+        }
+        *success = true;
+        return val;
+    }
+    else if(tokens[s].type == '(' && tokens[e].type == ')') {
+        // 括号表达式
+        return eval(s + 1, e - 1, success);
+    }
+    else {
+        // 找到主导运算符
+        int dominated_op = find_dominated_op(s, e, success);
+        if(!*success) return 0;
+        
+        int op_type = tokens[dominated_op].type;
+        
+        // 处理一元操作符
+        if(op_type == NOT || op_type == NEG || op_type == REF) {
+            uint32_t val = eval(dominated_op + 1, e, success);
+            if(!*success) return 0;
+            
+            switch(op_type) {
+                case NOT: return val == 0 ? 1 : 0;
+                case NEG: return -val;
+                case REF: 
+                    // 解引用操作
+                    return hwaddr_read(val, 4);
+                default: 
+                    *success = false;
+                    return 0;
             }
-            return left / right;
-        case EQ: return left == right ? 1 : 0;
-        case NEQ: return left != right ? 1 : 0;
-        case AND: return (left && right) ? 1 : 0;
-        case OR: return (left || right) ? 1 : 0;
-        default: return left;
-    }
-}
-
-// 解析因子：数字、寄存器、括号表达式
-uint32_t parse_factor() {
-    if (tokens[pos].type == '(') {
-        pos++;
-        uint32_t val = parse_expression(0);
-        if (pos < nr_token && tokens[pos].type == ')') {
-            pos++;
-            return val;
-        } else {
-            printf("Missing closing parenthesis\n");
-            exit(1);
-        }
-    }
-    
-    if (tokens[pos].type == NUM) {
-        uint32_t val = atoi(tokens[pos].str);
-        pos++;
-        return val;
-    }
-    
-    if (tokens[pos].type == HEX) {
-        const char *hex_str = tokens[pos].str;
-        if (strncmp(hex_str, "0x", 2) == 0) {
-            hex_str += 2;
-        }
-        uint32_t val = strtol(hex_str, NULL, 16);
-        pos++;
-        return val;
-    }
-    
-    if (tokens[pos].type == REG) {
-        const char *reg_name = tokens[pos].str + 1;
-        uint32_t val = get_register_value(reg_name);
-        pos++;
-        return val;
-    }
-    
-    printf("Invalid factor at position %d: type=%d\n", pos, tokens[pos].type);
-    exit(1);
-    return 0;
-}
-
-// 主解析函数
-uint32_t parse_expression(int min_priority) {
-    uint32_t left;
-    
-    // 处理一元操作符
-    if (pos < nr_token && 
-        (tokens[pos].type == NOT || tokens[pos].type == '*' || tokens[pos].type == '-')) {
-        int op = tokens[pos].type;
-        pos++;
-        uint32_t operand = parse_expression(6); // 一元操作符优先级最高
-        left = handle_unary_operator(op, operand);
-    } else {
-        left = parse_factor();
-    }
-    
-    // 处理二元操作符
-    while (pos < nr_token) {
-        int token_type = tokens[pos].type;
-        int priority = get_priority(token_type);
-        
-        // 如果优先级低于最小值或遇到右括号，停止解析
-        if (priority < min_priority || token_type == ')') {
-            break;
         }
         
-        pos++;
-        uint32_t right = parse_expression(priority);
-        left = handle_binary_operator(token_type, left, right);
+        // 处理二元操作符
+        uint32_t left_val = eval(s, dominated_op - 1, success);
+        if(!*success) return 0;
+        
+        uint32_t right_val = eval(dominated_op + 1, e, success);
+        if(!*success) return 0;
+        
+        switch(op_type) {
+            case '+': return left_val + right_val;
+            case '-': return left_val - right_val;
+            case '*': return left_val * right_val;
+            case '/': 
+                if(right_val == 0) {
+                    printf("Division by zero\n");
+                    *success = false;
+                    return 0;
+                }
+                return left_val / right_val;
+            case EQ: return left_val == right_val ? 1 : 0;
+            case NEQ: return left_val != right_val ? 1 : 0;
+            case AND: return (left_val && right_val) ? 1 : 0;
+            case OR: return (left_val || right_val) ? 1 : 0;
+            default: 
+                *success = false;
+                return 0;
+        }
     }
-    
-    return left;
 }
 
 uint32_t expr(char *e, bool *success) {
@@ -274,20 +291,40 @@ uint32_t expr(char *e, bool *success) {
         printf("[%d] type=%s, str=%s\n", i, type_str, tokens[i].str);
     }
     
-    *success = true;
-    pos = 0;
+    // 预处理：将某些运算符转换为一元运算符
+    for(int i = 0; i < nr_token; i++) {
+        if(tokens[i].type == '-') {
+            if(i == 0) {
+                tokens[i].type = NEG;
+                continue;
+            }
+            
+            int prev_type = tokens[i - 1].type;
+            if(!(prev_type == ')' || prev_type == NUM || prev_type == HEX || prev_type == REG)) {
+                tokens[i].type = NEG;
+            }
+        }
+        else if(tokens[i].type == '*') {
+            if(i == 0) {
+                tokens[i].type = REF;
+                continue;
+            }
+            
+            int prev_type = tokens[i - 1].type;
+            if(!(prev_type == ')' || prev_type == NUM || prev_type == HEX || prev_type == REG)) {
+                tokens[i].type = REF;
+            }
+        }
+    }
     
-    uint32_t result = parse_expression(0);
+    *success = true;
+    uint32_t result = eval(0, nr_token - 1, success);
     
     // 检查是否处理了所有 token
-    if (pos < nr_token) {
-        printf("Unexpected token at position %d: type=%d, str=%s\n", 
-               pos, tokens[pos].type, tokens[pos].str);
-        *success = false;
+    if (!*success) {
+        printf("Expression evaluation failed\n");
         return 0;
     }
     
     return result;
 }
-//p (!($ecx != 0x00008000) &&($eax ==0x00000000))+0x12345678
-//p 0xc0100000-(($edx+0x1234-10)*16)/4
