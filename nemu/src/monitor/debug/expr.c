@@ -246,24 +246,21 @@ uint32_t eval_factor() {
     // 处理一元操作符：逻辑非!和解引用*
     if (tokens[pos].type == NOT || tokens[pos].type == '*') {
     int op = tokens[pos].type;
-    pos++; // 跳过操作符
-    
-    // 只解析下一个原子表达式，而不是整个表达式
+    pos++;
     uint32_t operand;
     
-    // 特殊处理：如果下一个是括号，只解析括号内的单一表达式
     if (tokens[pos].type == '(') {
         pos++; // 跳过 '('
-        operand = eval_expr(); // 解析括号内的单一表达式
+        operand = eval_expr(); // 改为调用专门处理括号的函数
         
+        // 应该在这里检查并跳过匹配的 ')'
         if (pos < nr_token && tokens[pos].type == ')') {
-            pos++; // 跳过 ')'
+            pos++;
         } else {
             printf("Missing closing parenthesis\n");
             exit(1);
         }
     } else {
-        // 对于非括号情况，只解析下一个因子
         operand = eval_factor();
     }
     
@@ -275,10 +272,8 @@ uint32_t eval_factor() {
     } else {
         return 0;  // !(非0) = 0
     }
+  }
 }
-
-}
-    
     // 处理数字
     if (tokens[pos].type == NUM) {
         uint32_t val = atoi(tokens[pos].str);
