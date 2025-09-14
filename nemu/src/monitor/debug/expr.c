@@ -418,13 +418,13 @@ uint32_t expr(char *e, bool *success) {
     }
     
     *success = true;
-    printf("\n开始表达式求值\n");
+   // printf("\n开始表达式求值\n");
     uint32_t result = eval(0, nr_token - 1, success);
     
     if (*success) {
-        printf("\n表达式求值成功，结果 = 0x%08x (%d)\n", result, result);
+       // printf("\n表达式求值成功，结果 = 0x%08x (%d)\n", result, result);
     } else {
-        printf("\n表达式求值失败\n");
+       // printf("\n表达式求值失败\n");
     }
     
     return result;
