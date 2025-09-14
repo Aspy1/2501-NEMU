@@ -245,35 +245,22 @@ uint32_t eval_factor();
 uint32_t eval_factor() {
     // 处理一元操作符：逻辑非!和解引用*
     if (tokens[pos].type == NOT || tokens[pos].type == '*') {
-    int op = tokens[pos].type;
-    pos++;
-    uint32_t operand;
-    
-    if (tokens[pos].type == '(') {
-        pos++; // 跳过 '('
-        operand = eval_expr(); // 改为调用专门处理括号的函数
+        int op = tokens[pos].type;
+        pos++;
         
-        // 应该在这里检查并跳过匹配的 ')'
-        if (pos < nr_token && tokens[pos].type == ')') {
-            pos++;
-        } else {
-            printf("Missing closing parenthesis\n");
-            exit(1);
+        // 直接解析下一个因子，不再特殊处理括号
+        uint32_t operand = eval_factor();
+        
+        // 应用一元操作
+        if (op == NOT) {
+            // 显式检查操作数是否为0
+            return (operand == 0) ? 1 : 0;
+        } else if (op == '*') {
+            // 解引用操作
+            return *((uint32_t*)operand);
         }
-    } else {
-        operand = eval_factor();
     }
     
-    // 应用一元操作
-    if (op == NOT) {
-    // 显式检查操作数是否为0
-    if (operand == 0) {
-        return 1;  // !0 = 1
-    } else {
-        return 0;  // !(非0) = 0
-    }
-  }
-}
     // 处理数字
     if (tokens[pos].type == NUM) {
         uint32_t val = atoi(tokens[pos].str);
@@ -288,7 +275,7 @@ uint32_t eval_factor() {
         if (strncmp(hex_str, "0x", 2) == 0) {
             hex_str += 2;
         }
-		uint32_t val = strtol(hex_str, NULL, 16);
+        uint32_t val = strtol(hex_str, NULL, 16);
         pos++;
         return val;
     }
@@ -304,23 +291,21 @@ uint32_t eval_factor() {
     
     // 处理括号表达式
     if (tokens[pos].type == '(') {
-    pos++;
-    uint32_t val = eval_expr();
-    // 确保括号结束后立即返回，不继续解析后续运算符
-    if (pos < nr_token && tokens[pos].type == ')') {
         pos++;
-    } else {
-        printf("Missing closing parenthesis\n");
-        exit(1);
+        uint32_t val = eval_expr();
+        if (pos < nr_token && tokens[pos].type == ')') {
+            pos++;
+        } else {
+            printf("Missing closing parenthesis\n");
+            exit(1);
+        }
+        return val;
     }
-    return val;  // 直接返回括号内表达式的结果
-}
     
-    printf("Invalid factor\n");
+    printf("Invalid factor at position %d: type=%d\n", pos, tokens[pos].type);
     exit(1);
     return 0;
 }
-
 uint32_t eval_term() {
     uint32_t val = eval_factor();
     
