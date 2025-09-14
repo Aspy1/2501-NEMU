@@ -162,58 +162,144 @@ static bool make_token(char *e) {
 // 递归下降分析相关变量和函数
 static int pos = 0;// 当前分析到的 token 下标
 
-uint32_t eval_expr();//声明
+uint32_t eval_expr();
 
 // 解析因子（数字或括号表达式）
 uint32_t eval_factor() {
-    if (tokens[pos].type == NUM) { // 如果是数字
-        uint32_t val = atoi(tokens[pos].str); // 转为整数
-        pos++; // 移动到下一个 token
-        return val;
-    } else if (tokens[pos].type == '(') { // 如果是左括号
-        pos++; // 跳过左括号
-        uint32_t val = eval_expr(); // 递归解析括号内表达式
-        if (tokens[pos].type == ')') pos++; // 跳过右括号
+    // 如果是数字
+    if (tokens[pos].type == NUM) {
+        // 将数字字符串转换为整数
+        uint32_t val = atoi(tokens[pos].str);
+        // 移动到下一个 token
+        pos++;
         return val;
     }
-    panic("Invalid factor"); // 不是数字也不是括号，报错
+    // 如果是左括号
+    else if (tokens[pos].type == '(') {
+        // 跳过左括号
+        pos++;
+        // 递归解析括号内的表达式
+        uint32_t val = eval_expr();
+        
+        // 支持括号内的 == 运算
+        if (pos < nr_token && tokens[pos].type == EQ) {
+            // 跳过 == 运算符
+            pos++;
+            // 解析 == 右边的表达式
+            uint32_t rhs = eval_expr();
+            // 比较左右两边的值是否相等
+            val = (val == rhs) ? 1 : 0;
+        }
+        
+        // 检查是否有右括号
+        if (pos < nr_token && tokens[pos].type == ')') {
+            // 跳过右括号
+            pos++;
+        } else {
+            // 缺少右括号，报错
+            panic("Missing closing parenthesis");
+        }
+        return val;
+    }
+    // 既不是数字也不是括号，报错
+    panic("Invalid factor");
     return 0;
 }
 
 // 解析项（乘除运算）
 uint32_t eval_term() {
-    uint32_t val = eval_factor(); // 先解析一个因子
+    // 先解析一个因子
+    uint32_t val = eval_factor();
+    
+    // 处理连续的乘除运算
     while (pos < nr_token && (tokens[pos].type == '*' || tokens[pos].type == '/')) {
-        int op = tokens[pos].type; // 记录运算符
-        pos++; // 跳过运算符
-        uint32_t rhs = eval_factor(); // 解析下一个因子
-        if (op == '*') val *= rhs;   // 乘法
-        else if (op == '/') val /= rhs; // 除法
+        // 记录运算符
+        int op = tokens[pos].type;
+        // 跳过运算符
+        pos++;
+        // 解析下一个因子
+        uint32_t rhs = eval_factor();
+        
+        // 根据运算符进行计算
+        if (op == '*') {
+            val *= rhs;   // 乘法
+        } else if (op == '/') {
+            if (rhs == 0) {
+                // 除零错误
+                panic("Division by zero");
+            }
+            val /= rhs; // 除法
+        }
     }
     return val;
 }
 
 // 解析表达式（加减运算）
-uint32_t eval_expr() {
-    uint32_t val = eval_term(); // 先解析一个项
+uint32_t eval_add_sub() {
+    // 先解析一个项
+    uint32_t val = eval_term();
+    
+    // 处理连续的加减运算
     while (pos < nr_token && (tokens[pos].type == '+' || tokens[pos].type == '-')) {
-        int op = tokens[pos].type; // 记录运算符
-        pos++; // 跳过运算符
-        uint32_t rhs = eval_term(); // 解析下一个项
-        if (op == '+') val += rhs; // 加法
-        else if (op == '-') val -= rhs; // 减法
+        // 记录运算符
+        int op = tokens[pos].type;
+        // 跳过运算符
+        pos++;
+        // 解析下一个项
+        uint32_t rhs = eval_term();
+        
+        // 根据运算符进行计算
+        if (op == '+') {
+            val += rhs; // 加法
+        } else if (op == '-') {
+            val -= rhs; // 减法
+        }
+    }
+    return val;
+}
+
+// 解析表达式（处理 == 运算）
+uint32_t eval_expr() {
+    // 先解析加减运算
+    uint32_t val = eval_add_sub();
+    
+    // 处理 == 运算
+    if (pos < nr_token && tokens[pos].type == EQ) {
+        // 跳过 == 运算符
+        pos++;
+        // 解析右边的表达式
+        uint32_t rhs = eval_add_sub();
+        // 比较左右两边的值是否相等
+        val = (val == rhs) ? 1 : 0;
     }
     return val;
 }
 
 // 表达式主入口，负责词法分析和递归求值
 uint32_t expr(char *e, bool *success) {
-    if(!make_token(e)) { // 词法分析失败
+    // 进行词法分析
+    if(!make_token(e)) {
+        // 词法分析失败
         *success = false;
         return 0;
     }
+    
+    // 初始化成功标志
     *success = true;
-    pos = 0; // 初始化 token 下标
-    return eval_expr(); // 递归求值
+    // 重置 token 位置指针
+    pos = 0;
+    
+    // 递归求值
+    uint32_t result = eval_expr();
+    
+    // 检查是否处理了所有 token
+    if (pos < nr_token) {
+        // 还有未处理的 token，报错
+        printf("Unexpected token at position %d: type=%d\n", pos, tokens[pos].type);
+        *success = false;
+        return 0;
+    }
+    
+    return result;
 }
 
