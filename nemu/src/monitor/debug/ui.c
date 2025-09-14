@@ -133,7 +133,7 @@ static int cmd_info(char*args){
 static int cmd_x(char *args) {
 	char *arg1 = strtok(NULL, " ");
 	char *arg2 = strtok(NULL, " ");
-	printf("arg1: %s, arg2: %s\n", arg1, arg2); // Debugging line
+	//printf("arg1: %s, arg2: %s\n", arg1, arg2); // Debugging line
 	if(arg1 == NULL || arg2 == NULL) {
 		printf("Usage: x N EXPR\n");
 		return 0;
