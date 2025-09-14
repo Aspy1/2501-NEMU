@@ -267,29 +267,29 @@ uint32_t expr(char *e, bool *success) {
     }
     
     // 调试输出
-    printf("Tokens (%d):\n", nr_token);
-    for (int i = 0; i < nr_token; i++) {
-        const char *type_str = "UNKNOWN";
-        switch(tokens[i].type) {
-            case NOTYPE: type_str = "NOTYPE"; break;
-            case EQ: type_str = "EQ"; break;
-            case NUM: type_str = "NUM"; break;
-            case NEQ: type_str = "NEQ"; break;
-            case OR: type_str = "OR"; break;
-            case AND: type_str = "AND"; break;
-            case NOT: type_str = "NOT"; break;
-            case DEREF: type_str = "DEREF"; break;
-            case HEX: type_str = "HEX"; break;
-            case REG: type_str = "REG"; break;
-            case '(': type_str = "("; break;
-            case ')': type_str = ")"; break;
-            case '+': type_str = "+"; break;
-            case '-': type_str = "-"; break;
-            case '*': type_str = "*"; break;
-            case '/': type_str = "/"; break;
-        }
-        printf("[%d] type=%s, str=%s\n", i, type_str, tokens[i].str);
-    }
+    // printf("Tokens (%d):\n", nr_token);
+    // for (int i = 0; i < nr_token; i++) {
+    //     const char *type_str = "UNKNOWN";
+    //     switch(tokens[i].type) {
+    //         case NOTYPE: type_str = "NOTYPE"; break;
+    //         case EQ: type_str = "EQ"; break;
+    //         case NUM: type_str = "NUM"; break;
+    //         case NEQ: type_str = "NEQ"; break;
+    //         case OR: type_str = "OR"; break;
+    //         case AND: type_str = "AND"; break;
+    //         case NOT: type_str = "NOT"; break;
+    //         case DEREF: type_str = "DEREF"; break;
+    //         case HEX: type_str = "HEX"; break;
+    //         case REG: type_str = "REG"; break;
+    //         case '(': type_str = "("; break;
+    //         case ')': type_str = ")"; break;
+    //         case '+': type_str = "+"; break;
+    //         case '-': type_str = "-"; break;
+    //         case '*': type_str = "*"; break;
+    //         case '/': type_str = "/"; break;
+    //     }
+    //     printf("[%d] type=%s, str=%s\n", i, type_str, tokens[i].str);
+    // }
     
     // 预处理：将某些运算符转换为一元运算符
     for(int i = 0; i < nr_token; i++) {
