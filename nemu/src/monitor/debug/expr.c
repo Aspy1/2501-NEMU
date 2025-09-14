@@ -253,6 +253,7 @@ uint32_t eval_factor() {
         
         // 应用一元操作
         if (op == NOT) {
+			uint32_t operand = eval_factor();
             return operand ? 0 : 1; // 逻辑非：非0为0，0为1
         } else { // 解引用 *
             // 这里需要实现内存访问逻辑
