@@ -296,17 +296,17 @@ uint32_t eval_factor() {
         pos++; // 跳过左括号
         uint32_t val = eval_expr(); // 递归解析括号内表达式
         
-        // 支持括号内的 == 和 != 运算
-        if (pos < nr_token && (tokens[pos].type == EQ || tokens[pos].type == NEQ)) {
-            int op = tokens[pos].type;
-            pos++;
-            uint32_t rhs = eval_expr();
-            if (op == EQ) {
-                val = (val == rhs) ? 1 : 0;
-            } else { // NEQ
-                val = (val != rhs) ? 1 : 0;
-            }
-        }
+        // // 支持括号内的 == 和 != 运算
+        // if (pos < nr_token && (tokens[pos].type == EQ || tokens[pos].type == NEQ)) {
+        //     int op = tokens[pos].type;
+        //     pos++;
+        //     uint32_t rhs = eval_expr();
+        //     if (op == EQ) {
+        //         val = (val == rhs) ? 1 : 0;
+        //     } else { // NEQ
+        //         val = (val != rhs) ? 1 : 0;
+        //     }
+        // } //疑似有错误
         
         if (pos < nr_token && tokens[pos].type == ')') {
             pos++; // 跳过右括号
@@ -432,3 +432,4 @@ uint32_t expr(char *e, bool *success) {
     
     return result;
 }
+//p (!($ecx != 0x00008000) &&($eax ==0x00000000))+0x12345678
