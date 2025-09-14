@@ -1,4 +1,5 @@
 #include "nemu.h"
+#include "memory/memory.h"
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
@@ -248,7 +249,7 @@ uint32_t eval_factor() {
         int op = tokens[pos].type;
         pos++;
         
-        // 直接解析下一个因子，不再特殊处理括号
+        // 直接解析下一个因子
         uint32_t operand = eval_factor();
         
         // 应用一元操作
@@ -256,8 +257,9 @@ uint32_t eval_factor() {
             // 显式检查操作数是否为0
             return (operand == 0) ? 1 : 0;
         } else if (op == '*') {
-            // 解引用操作
-            return *((uint32_t*)operand);
+            // 解引用操作 - 需要安全的内存访问
+            // 使用 hwaddr_read 函数安全地读取内存
+            return hwaddr_read(operand, 4);
         }
     }
     
@@ -386,6 +388,13 @@ uint32_t eval_expr() {
         uint32_t rhs = eval_and();
         val = (val || rhs) ? 1 : 0;
     }
+    
+    // 添加边界检查，确保不会越过表达式边界
+    if (pos < nr_token && tokens[pos].type == ')') {
+        // 遇到右括号时停止解析
+        return val;
+    }
+    
     return val;
 }
 
@@ -400,7 +409,29 @@ uint32_t expr(char *e, bool *success) {
     for (int i = 0; i < nr_token; i++) {
        printf("[%d] type=%d, str=%s\n", i, tokens[i].type, tokens[i].str);
     }
-    
+     printf("Tokens (%d):\n", nr_token);
+    for (int i = 0; i < nr_token; i++) {
+        const char *type_str = "UNKNOWN";
+        switch(tokens[i].type) {
+            case NOTYPE: type_str = "NOTYPE"; break;
+            case EQ: type_str = "EQ"; break;
+            case NUM: type_str = "NUM"; break;
+            case NEQ: type_str = "NEQ"; break;
+            case OR: type_str = "OR"; break;
+            case AND: type_str = "AND"; break;
+            case NOT: type_str = "NOT"; break;
+            case DEREF: type_str = "DEREF"; break;
+            case HEX: type_str = "HEX"; break;
+            case REG: type_str = "REG"; break;
+            case '(': type_str = "("; break;
+            case ')': type_str = ")"; break;
+            case '+': type_str = "+"; break;
+            case '-': type_str = "-"; break;
+            case '*': type_str = "*"; break;
+            case '/': type_str = "/"; break;
+        }
+        printf("[%d] type=%s, str=%s\n", i, type_str, tokens[i].str);
+    }//调试信息
     *success = true;
     pos = 0;
     
