@@ -245,24 +245,36 @@ uint32_t eval_factor();
 uint32_t eval_factor() {
     // 处理一元操作符：逻辑非!和解引用*
     if (tokens[pos].type == NOT || tokens[pos].type == '*') {
-        int op = tokens[pos].type;
-        pos++; // 跳过操作符
+    int op = tokens[pos].type;
+    pos++; // 跳过操作符
+    
+    // 只解析下一个原子表达式，而不是整个表达式
+    uint32_t operand;
+    
+    // 特殊处理：如果下一个是括号，只解析括号内的单一表达式
+    if (tokens[pos].type == '(') {
+        pos++; // 跳过 '('
+        operand = eval_expr(); // 解析括号内的单一表达式
         
-        // 获取操作数
-        uint32_t operand = eval_factor();
-        
-        // 应用一元操作
-        if (op == NOT) {
-	
-            return operand ? 0 : 1; // 逻辑非：非0为0，0为1
-        } else { // 解引用 *
-            // 这里需要实现内存访问逻辑
-            // 假设有一个函数 read_memory(addr) 返回地址处的值
-            // return read_memory(operand);
-            printf("Dereference not implemented for address 0x%x\n", operand);
-            return 0;
+        if (pos < nr_token && tokens[pos].type == ')') {
+            pos++; // 跳过 ')'
+        } else {
+            printf("Missing closing parenthesis\n");
+            exit(1);
         }
+    } else {
+        // 对于非括号情况，只解析下一个因子
+        operand = eval_factor();
     }
+    
+    // 应用一元操作
+    if (op == NOT) {
+        return operand ? 0 : 1;
+    } else { 
+        // 解引用处理...
+    }
+
+}
     
     // 处理数字
     if (tokens[pos].type == NUM) {
