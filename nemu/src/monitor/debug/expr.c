@@ -278,15 +278,15 @@ static uint32_t eval(int s, int e, bool *success) {
             switch(op_type) {
                 case NOT: 
                     result = (val == 0) ? 1 : 0;
-                    printf("!%d = %d\n", val, result);
+                    // printf("!%d = %d\n", val, result);
                     break;
                 case NEG: 
                     result = -val;
-                    printf("-%d = %d\n", val, result);
+                    // printf("-%d = %d\n", val, result);
                     break;
                 case REF: 
                     // 解引用操作
-                    printf("*0x%08x\n", val);
+                    // printf("*0x%08x\n", val);
                     result = hwaddr_read(val, 4);
                     break;
                 default: 
