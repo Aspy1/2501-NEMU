@@ -133,7 +133,7 @@ static int cmd_info(char*args){
 static int cmd_x(char *args) {
 	char *arg1 = strtok(NULL, " ");
 	char *arg2 = strtok(NULL, " ");
-	// printf("arg1: %s, arg2: %s\n", arg1, arg2); // Debugging line
+	printf("arg1: %s, arg2: %s\n", arg1, arg2); // Debugging line
 	if(arg1 == NULL || arg2 == NULL) {
 		printf("Usage: x N EXPR\n");
 		return 0;
@@ -159,10 +159,10 @@ static int cmd_x(char *args) {
 }
 
 static int cmd_p(char *args) {
-	if (args == NULL) {
-		printf("Usage: p EXPR\n");
-		return 0;
-	}
+	if (args == NULL || *args == '\0') {
+        printf("Usage: p EXPRESSION\n");
+        return 0;
+    }
 	bool success;
 	uint32_t result = expr(args, &success);
 	// expr 函数用于计算表达式的值，返回结果为 uint32_t 类型，并通过 success 指针返回计算是否成功
