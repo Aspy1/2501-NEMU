@@ -291,12 +291,14 @@ uint32_t eval_factor() {
         return val;
     }
     
-    // 处理括号表达式
+    // 处理括号表达式 - 关键修改
     if (tokens[pos].type == '(') {
-        pos++;
+        pos++; // 跳过 '('
         uint32_t val = eval_expr();
+        
+        // 确保下一个 token 是 ')'
         if (pos < nr_token && tokens[pos].type == ')') {
-            pos++;
+            pos++; // 跳过 ')'
         } else {
             printf("Missing closing parenthesis\n");
             exit(1);
@@ -389,12 +391,6 @@ uint32_t eval_expr() {
         val = (val || rhs) ? 1 : 0;
     }
     
-    // 添加边界检查，确保不会越过表达式边界
-    if (pos < nr_token && tokens[pos].type == ')') {
-        // 遇到右括号时停止解析
-        return val;
-    }
-    
     return val;
 }
 
@@ -404,34 +400,12 @@ uint32_t expr(char *e, bool *success) {
         return 0;
     }
     
-    // 调试输出：打印所有识别出的 tokens
-    printf("Tokens:\n");
+    // 调试输出
+    printf("Tokens (%d):\n", nr_token);
     for (int i = 0; i < nr_token; i++) {
-       printf("[%d] type=%d, str=%s\n", i, tokens[i].type, tokens[i].str);
+        printf("[%d] type=%d, str=%s\n", i, tokens[i].type, tokens[i].str);
     }
-     printf("Tokens (%d):\n", nr_token);
-    for (int i = 0; i < nr_token; i++) {
-        const char *type_str = "UNKNOWN";
-        switch(tokens[i].type) {
-            case NOTYPE: type_str = "NOTYPE"; break;
-            case EQ: type_str = "EQ"; break;
-            case NUM: type_str = "NUM"; break;
-            case NEQ: type_str = "NEQ"; break;
-            case OR: type_str = "OR"; break;
-            case AND: type_str = "AND"; break;
-            case NOT: type_str = "NOT"; break;
-            case DEREF: type_str = "DEREF"; break;
-            case HEX: type_str = "HEX"; break;
-            case REG: type_str = "REG"; break;
-            case '(': type_str = "("; break;
-            case ')': type_str = ")"; break;
-            case '+': type_str = "+"; break;
-            case '-': type_str = "-"; break;
-            case '*': type_str = "*"; break;
-            case '/': type_str = "/"; break;
-        }
-        printf("[%d] type=%s, str=%s\n", i, type_str, tokens[i].str);
-    }//调试信息
+    
     *success = true;
     pos = 0;
     
@@ -448,3 +422,4 @@ uint32_t expr(char *e, bool *success) {
     return result;
 }
 //p (!($ecx != 0x00008000) &&($eax ==0x00000000))+0x12345678
+//p 0xc0100000-(($edx+0x1234-10)*16)/4
