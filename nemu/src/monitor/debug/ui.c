@@ -45,6 +45,8 @@ static int cmd_si(char *args);
 static int cmd_info(char *args);
 
 static int cmd_x(char *args);
+
+static int cmd_p(char *args);
 	
 static struct {
 	char *name;
@@ -56,7 +58,8 @@ static struct {
 	{ "q", "Exit NEMU", cmd_q },
 	{ "si", "The program pauses after single-stepping through N instructions. If N is not specified, it defaults to 1.",cmd_si},
 	{ "info","Print register status or watchpoint information",cmd_info},
-	{ "x","Examine memory at a given address",cmd_x}
+	{ "x","Examine memory at a given address",cmd_x},
+	{ "p","Calculate the value of the expression EXPR.", cmd_p}
 	/* TODO: Add more commands */
 
 };
@@ -152,6 +155,23 @@ static int cmd_x(char *args) {
             //打印从base_addr开始的N个4字节内容
         }
     }
+	return 0;
+}
+
+static int cmd_p(char *args) {
+	if (args == NULL) {
+		printf("Usage: p EXPR\n");
+		return 0;
+	}
+	bool success;
+	uint32_t result = expr(args, &success);
+	// expr 函数用于计算表达式的值，返回结果为 uint32_t 类型，并通过 success 指针返回计算是否成功
+	// expr 函数在 expr.c 中实现
+	if (success) {
+		printf("%u\n", result); // 输出计算结果
+	} else {
+		printf("Invalid expression.\n");
+	}
 	return 0;
 }
 

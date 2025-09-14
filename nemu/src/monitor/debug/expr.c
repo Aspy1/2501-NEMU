@@ -161,6 +161,9 @@ uint32_t expr(char *e, bool *success) {
 		*success = false;
 		return 0;
 	}
+	//expr的解释：接受一个字符串表达式e，并通过指针success返回计算是否成功
+	//首先调用make_token函数对表达式进行词法分析，将结果存储在tokens数组中
+	//如果词法分析失败，设置success为false并返回0
 
 	/* TODO: Insert codes to evaluate the expression. */
 	panic("please implement me");
