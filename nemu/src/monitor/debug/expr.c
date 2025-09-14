@@ -68,9 +68,10 @@ typedef struct token {
 	int type;
 	char str[32];
 } Token;
+//定义一个结构体类型 Token，包含两个成员：type 和 str
 
 Token tokens[32];
-int nr_token;
+int nr_token;  //记录识别出的token的数量
 
 static bool make_token(char *e) {
 	int position = 0;
@@ -117,7 +118,12 @@ static bool make_token(char *e) {
 					//每种情况，向tokens数组添加类型名称 并记录这一子串。记录完成后，指针后移。
 					case NOTYPE: break; //忽略空格
 					case NUM:
+					    if (nr_token >= 32) {
+							printf("too many tokens\n");
+							return false;
+						}
 						
+
 
 					default: panic("please implement me");
 				}
