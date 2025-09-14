@@ -79,7 +79,7 @@ static bool make_token(char *e) {
 	
 	nr_token = 0;
 
-	while(e[position] != '\0') {
+	while(e[position] != '\0') {  //while执行的条件是e[position]不为字符串结束符，其中e是传入的字符串，position是字符串的索引
 		/* Try all rules one by one. */
 		for(i = 0; i < NR_REGEX; i ++) {
 			if(regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
@@ -95,22 +95,12 @@ static bool make_token(char *e) {
 				 */
 				//翻译：现在使用 rules[i] 识别了一个新令牌。添加代码以在数组 `tokens` 中记录令牌。对于某些类型的令牌，应执行一些额外的操作。
 
-				switch(rules[i].token_type) {
-    case NOTYPE: break;
-    case '+': case '-': case '*': case '/': case '(': case ')': case EQ:
-        tokens[nr_token].type = rules[i].token_type;
-        tokens[nr_token].str[0] = '\0';
-        nr_token++;
-        break;
-    case NUM:
-        tokens[nr_token].type = NUM;
-        int len = substr_len < 31 ? substr_len : 31;
-        strncpy(tokens[nr_token].str, substr_start, len);
-        tokens[nr_token].str[len] = '\0';
-        nr_token++;
-        break;
-    default: panic("please implement me");
-}
+				switch(rules[i].token_type) { //switch的格式：switch(令牌类型) { case: ...
+					//每种情况，向tokens数组添加类型名称 并记录这一子串。记录完成后，指针后移。
+					case NOTYPE: break; //忽略空格
+
+					default: panic("please implement me");
+				}
 
 				break;
 			}
