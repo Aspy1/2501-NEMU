@@ -164,7 +164,7 @@ static bool make_token(char *e) {
 							printf("too many tokens\n");
 							return false;
 						}
-						tokens[nr_token].type = NUM;
+						tokens[nr_token].type = HEX;
 						// 复制数字字符串，确保不超过缓冲区大小
 						int len = substr_len < 31 ? substr_len : 31;
 						strncpy(tokens[nr_token].str, substr_start, len);
@@ -316,12 +316,12 @@ uint32_t eval_term() {
 
 // 解析表达式（加减运算）
 uint32_t eval_add_sub() {
-    uint32_t val = eval_term();
+    uint32_t val = eval_term(); // 先解析乘除
     
     while (pos < nr_token && (tokens[pos].type == '+' || tokens[pos].type == '-')) {
         int op = tokens[pos].type;
         pos++;
-        uint32_t rhs = eval_term();
+        uint32_t rhs = eval_term(); // 解析下一个项
         
         if (op == '+') {
             val += rhs;
@@ -334,12 +334,12 @@ uint32_t eval_add_sub() {
 
 // 解析表达式（处理 == 和 != 运算）
 uint32_t eval_eq_neq() {
-    uint32_t val = eval_add_sub();
+    uint32_t val = eval_add_sub(); // 先解析加减
     
     while (pos < nr_token && (tokens[pos].type == EQ || tokens[pos].type == NEQ)) {
         int op = tokens[pos].type;
         pos++;
-        uint32_t rhs = eval_add_sub();
+        uint32_t rhs = eval_add_sub(); // 解析右边的表达式
         
         if (op == EQ) {
             val = (val == rhs) ? 1 : 0;
@@ -352,12 +352,11 @@ uint32_t eval_eq_neq() {
 
 // 解析表达式（处理 && 运算）
 uint32_t eval_and() {
-    uint32_t val = eval_eq_neq();
+    uint32_t val = eval_eq_neq(); // 先解析等于/不等于
     
     while (pos < nr_token && tokens[pos].type == AND) {
         pos++;
         uint32_t rhs = eval_eq_neq();
-        // 逻辑与：只有两边都为真（非0）才为真
         val = (val && rhs) ? 1 : 0;
     }
     return val;
@@ -365,12 +364,11 @@ uint32_t eval_and() {
 
 // 解析表达式（处理 || 运算）
 uint32_t eval_expr() {
-    uint32_t val = eval_and();
+    uint32_t val = eval_and(); // 先解析逻辑与
     
     while (pos < nr_token && tokens[pos].type == OR) {
         pos++;
         uint32_t rhs = eval_and();
-        // 逻辑或：只要有一边为真（非0）就为真
         val = (val || rhs) ? 1 : 0;
     }
     return val;
