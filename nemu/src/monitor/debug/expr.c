@@ -129,6 +129,15 @@ static bool make_token(char *e) {
 						tokens[nr_token].str[len] = '\0';
 						nr_token++;
 						break;
+						case '+': case '-': case '*': case '/': case EQ: case '(': case ')':
+                        if (nr_token >= 32) {
+                            printf("too many tokens\n");
+                            return false;
+                        }
+                        tokens[nr_token].type = rules[i].token_type;
+                        tokens[nr_token].str[0] = '\0'; // 运算符和括号无需保存字符串
+                        nr_token++;
+                        break;
 
 
 					default: panic("please implement me");
