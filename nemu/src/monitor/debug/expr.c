@@ -3,16 +3,18 @@
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
+//翻译：我们使用 POSIX 正则表达式函数来处理正则表达式
 #include <sys/types.h>
 #include <regex.h>
 
 enum {
-	NOTYPE = 256, EQ
+	NOTYPE = 256, EQ = 257, NUM = 258
 
 	/* TODO: Add more token types */
 
 };
-
+//enum 的作用是 定义一组命名的整数常量
+//NOTYPE从256开始的原因是 ASCII 码中 0-255 已经被占用
 static struct rule {
 	char *regex;
 	int token_type;
@@ -23,17 +25,25 @@ static struct rule {
 	 */
 	//题目翻译：注意不同规则的优先级
 
-	{" +",	NOTYPE},				// spaces
+	{" ", NOTYPE},				// spaces
 	{"\\+", '+'},					// plus
 	//解释：\\表示斜杠，而表示+是斜杠+，所以\\+表示加号本身
 	//这也说明了\\转义的优先级更高
-	{"==", EQ}						// equal
+	{"==", EQ},						// equal
+	{"\\*",'*'},					// multiply
+	{"\\/",'/'},		
+	{"-",'-'},
+	{"\\(",'('},
+	{"\\)",')'},
 	//等号并没有特殊含义，因此不需要加反斜杠
+	//接下来判断十进制整数
+	{"[0-9]+", NUM},
+
 };
 // 通常情况下 忽略所有的空格，优先级：小括号 高于乘除 高于加减 
 // 转义字符\\表示一个斜杠
-// 正则表达式中，+ * ? . ^ $ | () [] {} 都是有特殊含义的字符，如果要表示它们本身，需要在前面加上反斜杠\进行转义 比如\\+表示加号本身
-#define NR_REGEX (sizeof(rules) / sizeof(rules[0]) )
+// 正则表达式中，+ * () / 都是有特殊含义的字符，如果要表示它们本身，需要在前面加上反斜杠\进行转义 比如\\+表示加号本身
+#define NR_REGEX (sizeof(rules) / sizeof(rules[0]))
 
 static regex_t re[NR_REGEX];
 
@@ -83,10 +93,24 @@ static bool make_token(char *e) {
 				 * to record the token in the array `tokens'. For certain types
 				 * of tokens, some extra actions should be performed.
 				 */
+				//翻译：现在使用 rules[i] 识别了一个新令牌。添加代码以在数组 `tokens` 中记录令牌。对于某些类型的令牌，应执行一些额外的操作。
 
 				switch(rules[i].token_type) {
-					default: panic("please implement me");
-				}
+    case NOTYPE: break;
+    case '+': case '-': case '*': case '/': case '(': case ')': case EQ:
+        tokens[nr_token].type = rules[i].token_type;
+        tokens[nr_token].str[0] = '\0';
+        nr_token++;
+        break;
+    case NUM:
+        tokens[nr_token].type = NUM;
+        int len = substr_len < 31 ? substr_len : 31;
+        strncpy(tokens[nr_token].str, substr_start, len);
+        tokens[nr_token].str[len] = '\0';
+        nr_token++;
+        break;
+    default: panic("please implement me");
+}
 
 				break;
 			}
