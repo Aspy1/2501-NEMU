@@ -117,7 +117,6 @@ static bool make_token(char *e) {
 				switch(rules[i].token_type) { //switch的格式：switch(令牌类型) { case: ...
 					//每种情况，向tokens数组添加类型名称 并记录这一子串。记录完成后，指针后移。
 					case NOTYPE: 
-					position += substr_len;
 					break; //忽略空格 但是要更新position
 					case NUM:
 					    if (nr_token >= 32) {
@@ -140,7 +139,6 @@ static bool make_token(char *e) {
                         tokens[nr_token].type = rules[i].token_type;
                         tokens[nr_token].str[0] = '\0'; // 运算符和括号无需保存字符串
                         nr_token++;
-						position += substr_len;
                         break;
 
 
