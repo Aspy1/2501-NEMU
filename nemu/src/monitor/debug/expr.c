@@ -412,10 +412,10 @@ uint32_t expr(char *e, bool *success) {
     }
     
     // 调试输出：打印所有识别出的 tokens
-    printf("Tokens:\n");
-    for (int i = 0; i < nr_token; i++) {
-        printf("[%d] type=%d, str=%s\n", i, tokens[i].type, tokens[i].str);
-    }
+    //printf("Tokens:\n");
+    //for (int i = 0; i < nr_token; i++) {
+    //    printf("[%d] type=%d, str=%s\n", i, tokens[i].type, tokens[i].str);
+    //}
     
     *success = true;
     pos = 0;
