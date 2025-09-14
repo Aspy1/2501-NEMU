@@ -310,43 +310,43 @@ static uint32_t eval(int s, int e, bool *success) {
         switch(op_type) {
             case '+': 
                 result = left_val + right_val;
-                printf("%d + %d = %d\n", left_val, right_val, result);
+                // printf("%d + %d = %d\n", left_val, right_val, result);
                 break;
             case '-': 
                 result = left_val - right_val;
-                printf("%d - %d = %d\n", left_val, right_val, result);
+                // printf("%d - %d = %d\n", left_val, right_val, result);
                 break;
             case '*': 
                 result = left_val * right_val;
-                printf("%d * %d = %d\n", left_val, right_val, result);
+                // printf("%d * %d = %d\n", left_val, right_val, result);
                 break;
             case '/': 
                 if(right_val == 0) {
-                    printf("错误: 除以零\n");
+                    // printf("错误: 除以零\n");
                     *success = false;
                     return 0;
                 }
                 result = left_val / right_val;
-                printf("%d / %d = %d\n", left_val, right_val, result);
+                // printf("%d / %d = %d\n", left_val, right_val, result);
                 break;
             case EQ: 
                 result = (left_val == right_val) ? 1 : 0;
-                printf("%d == %d = %d\n", left_val, right_val, result);
+                // printf("%d == %d = %d\n", left_val, right_val, result);
                 break;
             case NEQ: 
                 result = (left_val != right_val) ? 1 : 0;
-                printf("%d != %d = %d\n", left_val, right_val, result);
+                // printf("%d != %d = %d\n", left_val, right_val, result);
                 break;
             case AND: 
                 result = (left_val && right_val) ? 1 : 0;
-                printf("%d && %d = %d\n", left_val, right_val, result);
+                // printf("%d && %d = %d\n", left_val, right_val, result);
                 break;
             case OR: 
                 result = (left_val || right_val) ? 1 : 0;
-                printf("%d || %d = %d\n", left_val, right_val, result);
+                //printf("%d || %d = %d\n", left_val, right_val, result);
                 break;
             default: 
-                printf("错误: 未知的二元操作符类型 %d\n", op_type);
+                // printf("错误: 未知的二元操作符类型 %d\n", op_type);
                 *success = false;
                 return 0;
         }
