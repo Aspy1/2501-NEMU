@@ -90,6 +90,7 @@ void cpu_exec(volatile uint32_t n) {
 			printf("%s\n", asm_buf);
 		}
 #endif
+//在调试模式下记录每条执行的指令到日志文件
 
 		/* TODO: check watchpoints here. */
 #ifdef DEBUG
@@ -116,7 +117,7 @@ while (current_wp != NULL) {
 		device_update();
 #endif
 
-		if(nemu_state != RUNNING) { return; }
+		if(nemu_state != RUNNING) { break; }
 	}
 
 	if(nemu_state == RUNNING) { nemu_state = STOP; }
