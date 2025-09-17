@@ -1,5 +1,6 @@
 #include "monitor/monitor.h"
 #include "cpu/helper.h"
+#include "monitor/watchpoint.h"
 #include <setjmp.h>
 
 /* The assembly code of instructions executed is only output to the screen
@@ -91,7 +92,22 @@ void cpu_exec(volatile uint32_t n) {
 #endif
 
 		/* TODO: check watchpoints here. */
-
+#ifdef DEBUG
+// 在调试模式下检查监视点
+WP* current_wp = get_head_wp();
+while (current_wp != NULL) {
+    bool success;
+    uint32_t new_value = expr(current_wp->expr, &success);
+    if (success && new_value != current_wp->value) {
+        // 监视点值发生变化，触发监视点
+        printf("\nHint watchpoint %d at address 0x%08x\n", current_wp->NO, eip_temp);
+        current_wp->value = new_value; // 更新值
+        nemu_state = STOP;
+        return;
+    }
+    current_wp = current_wp->next;
+}
+#endif
 
 #ifdef HAS_DEVICE
 		extern void device_update();

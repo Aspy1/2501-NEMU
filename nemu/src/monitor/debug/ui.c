@@ -47,7 +47,11 @@ static int cmd_info(char *args);
 static int cmd_x(char *args);
 
 static int cmd_p(char *args);
-	
+
+static int cmd_d(char *args);
+
+static int cmd_w(char *args);
+
 static struct {
 	char *name;
 	char *description;
@@ -59,7 +63,9 @@ static struct {
 	{ "si", "The program pauses after single-stepping through N instructions. If N is not specified, it defaults to 1.",cmd_si},
 	{ "info","Print register status or watchpoint information",cmd_info},
 	{ "x","Examine memory at a given address",cmd_x},
-	{ "p","Calculate the value of the expression EXPR.", cmd_p}
+	{ "p","Calculate the value of the expression EXPR.", cmd_p},
+	{ "d","Delete the monitoring point by number",cmd_d},
+	{ "w", "Set a watchpoint for an expression", cmd_w}
 	/* TODO: Add more commands */
 
 };
@@ -182,6 +188,53 @@ static int cmd_p(char *args) {
 		printf("Invalid expression.\n");
 	}
 	return 0;
+}
+
+static int cmd_d(char *args) {
+    if (args == NULL || *args == '\0') {
+        printf("Usage: d WP_NUM\n");
+        return 0;
+    }
+    
+    int wp_num = atoi(args);
+    // 这里需要遍历监视点链表找到对应编号的监视点并删除
+    WP* current = get_head_wp();
+    WP* prev = NULL;  
+    
+    while (current != NULL) {
+        if (current->NO == wp_num) {
+            // 找到要删除的监视点
+            if (prev == NULL) {
+                // 要删除的是头节点
+            } else {
+                prev->next = current->next;
+            }
+            free_wp(current);
+            printf("Deleted watchpoint %d\n", wp_num);
+            return 0;
+        }
+        prev = current;
+        current = current->next;
+    }
+    
+    printf("Watchpoint %d not found\n", wp_num);
+    return 0;
+}
+
+static int cmd_w(char *args) {
+    if (args == NULL || *args == '\0') {
+        printf("Usage: w EXPRESSION\n");
+        return 0;
+    }
+    
+    WP* wp = create_wp(args);
+    if (wp == NULL) {
+        printf("Failed to create watchpoint for expression: %s\n", args);
+        return 0;
+    }
+    
+    printf("Watchpoint %d created for expression: %s\n", wp->NO, wp->expr);
+    return 0;
 }
 
 void ui_mainloop() {

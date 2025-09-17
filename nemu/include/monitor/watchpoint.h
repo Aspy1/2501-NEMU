@@ -2,6 +2,7 @@
 #define __WATCHPOINT_H__
 
 #include "common.h"
+#include "monitor/expr.h"
 
 typedef struct watchpoint {
 	int NO;					 //监视点编号
@@ -15,5 +16,9 @@ typedef struct watchpoint {
 } WP;
 
 WP* get_head_wp();
+
+WP* create_wp(char *expression);
+
+void free_wp(WP* wp); 
 
 #endif
