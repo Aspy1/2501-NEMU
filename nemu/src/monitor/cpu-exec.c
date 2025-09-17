@@ -103,13 +103,11 @@ while (current_wp != NULL) {
     if (success && new_value != current_wp->value) {
         // 监视点值发生变化，触发监视点
         printf("\nHint watchpoint %d at address 0x%08x\n", current_wp->NO, eip_temp);
+        printf("  %s\n", current_wp->expr);
+        printf("  Old value = %u\n  New value = %u\n", current_wp->value, new_value);
         current_wp->value = new_value; // 更新值
         nemu_state = STOP;
         return;
-    }
-    // 即使值相同，也更新当前值，为下一次比较做准备
-    else if (success) {
-        current_wp->value = new_value;
     }
     current_wp = current_wp->next;
 }
