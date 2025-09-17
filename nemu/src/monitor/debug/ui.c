@@ -103,7 +103,6 @@ static int cmd_si(char *args) {
 }
 
 static int cmd_info(char*args){
-// filepath: d:\2501 计算机系统综合实践\2501-NEMU\nemu\src\monitor\debug\ui.c
     char *arg = strtok(NULL," ");
     if(arg == NULL){
         printf("Please specify 'r' for registers or 'w' for watchpoints.\n");
@@ -119,8 +118,18 @@ static int cmd_info(char*args){
             return 0;
         }
         else if(strcmp(arg,"w")==0){
-            //打印监视点信息
-            //暂时不实现
+            //打印使用中的监视点信息
+            WP* current = get_head_wp();  // 使用函数获取head指针
+    		if(current == NULL) {
+                printf("No watchpoints currently set.\n");
+            } else {
+                printf("Watchpoint list:\n");
+                while(current != NULL) {
+                    printf("Watchpoint %d: %s = %u (0x%x)\n", 
+                           current->NO, current->expr, current->value, current->value);
+                    current = current->next;
+                }
+            }
             return 0;
         }
         else{
