@@ -94,8 +94,7 @@ void cpu_exec(volatile uint32_t n) {
 //在调试模式下记录每条执行的指令到日志文件
 
 		/* TODO: check watchpoints here. */
-#ifdef DEBUG
-// 在调试模式下检查监视点
+
 WP* current_wp = get_head_wp();
 while (current_wp != NULL) {
     bool success;
@@ -111,7 +110,7 @@ while (current_wp != NULL) {
     }
     current_wp = current_wp->next;
 }
-#endif
+
 
 #ifdef HAS_DEVICE
 		extern void device_update();
