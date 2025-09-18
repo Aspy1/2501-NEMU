@@ -121,7 +121,7 @@ static int cmd_info(char*args){
             printf("$ecx (0x%08x)\n", cpu.gpr[1]._32);
             printf("$edx (0x%08x)\n", cpu.gpr[2]._32);
             printf("$ebx (0x%08x)\n", cpu.gpr[3]._32);
-			printf("eip (0x%08x)\n", cpu.eip); // 打印eip
+			printf("$eip (0x%08x)\n", cpu.eip); // 打印eip
             return 0;
         }
         else if(strcmp(arg,"w")==0){
