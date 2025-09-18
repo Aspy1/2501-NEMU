@@ -61,7 +61,7 @@ static struct {
 	{ "c", "Continue the execution of the program", cmd_c },
 	{ "q", "Exit NEMU", cmd_q },
 	{ "si", "The program pauses after single-stepping through N instructions. If N is not specified, it defaults to 1.",cmd_si},
-	{ "info","Print register status or watchpoint information",cmd_info},
+	{ "info","Print register status[r] or watchpoint information[w]",cmd_info},
 	{ "x","Examine memory at a given address",cmd_x},
 	{ "p","Calculate the value of the expression EXPR.", cmd_p},
 	{ "d","Delete the monitoring point by number",cmd_d},
