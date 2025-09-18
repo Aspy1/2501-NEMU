@@ -96,16 +96,16 @@ static bool make_token(char *e) {
 }
 
 // 定义 Register 结构体
-typedef struct {
-    const char *name;
-    uint32_t value;
-} Register;
+// typedef struct {
+//     const char *name;
+//     uint32_t value;
+// } Register;
 
-Register registers[] = {
-    {"eax", 0}, {"ebx", 0}, {"ecx", 0x00008000},
-    {"edx", 0}, {"esp", 0}, {"ebp", 0}, {"eip", 0}
-};
-
+// Register registers[] = {
+//     {"eax", 0}, {"ebx", 0}, {"ecx", 0x00008000},
+//     {"edx", 0}, {"esp", 0}, {"ebp", 0}, {"eip", 0}
+// };
+//错误
 #define NUM_REGISTERS (sizeof(registers) / sizeof(registers[0]))
 
 uint32_t get_register_value(const char *name) {
