@@ -1,4 +1,5 @@
 #include "nemu.h"
+#include "cpu/reg.h"
 #include <sys/types.h>
 #include <regex.h>
 #include <stdlib.h>
@@ -108,11 +109,15 @@ Register registers[] = {
 #define NUM_REGISTERS (sizeof(registers) / sizeof(registers[0]))
 
 uint32_t get_register_value(const char *name) {
-    for (int i = 0; i < NUM_REGISTERS; i++) {
-        if (strcmp(registers[i].name, name) == 0) {
-            return registers[i].value;
-        }
-    }
+    if (strcmp(name, "eax") == 0) return cpu.eax;
+    if (strcmp(name, "ecx") == 0) return cpu.ecx;
+    if (strcmp(name, "edx") == 0) return cpu.edx;
+    if (strcmp(name, "ebx") == 0) return cpu.ebx;
+    if (strcmp(name, "esp") == 0) return cpu.esp;
+    if (strcmp(name, "ebp") == 0) return cpu.ebp;
+    if (strcmp(name, "esi") == 0) return cpu.esi;
+    if (strcmp(name, "edi") == 0) return cpu.edi;
+    if (strcmp(name, "eip") == 0) return cpu.eip;
     printf("Unknown register: %s\n", name);
     return 0;
 }
