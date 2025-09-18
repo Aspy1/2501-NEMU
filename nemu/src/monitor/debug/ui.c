@@ -98,11 +98,12 @@ static int cmd_help(char *args) {
 static int cmd_si(char *args) {
     char *arg = strtok(NULL, " ");
     int times = 1;
+	int i;
     if(arg != NULL) {
         times = atoi(arg);
         if(times <= 0) times = 1; // 防止非法输入
     }
-    for(int i = 0; i < times; i++) {
+    for(i = 0; i < times; i++) {
         cpu_exec(1);
     }
     return 0;
@@ -149,6 +150,7 @@ static int cmd_info(char*args){
 static int cmd_x(char *args) {
 	char *arg1 = strtok(NULL, " ");
 	char *arg2 = strtok(NULL, " ");
+	int i;
 	//printf("arg1: %s, arg2: %s\n", arg1, arg2); // Debugging line
 	if(arg1 == NULL || arg2 == NULL) {
 		printf("Usage: x N EXPR\n");
@@ -164,7 +166,7 @@ static int cmd_x(char *args) {
             //printf("0x%08x\n", cpu.eip + i );//打印N个内存地址，起始地址为eip. 作为测试
             //起始地址替换为arg2表达式的值
         swaddr_t base_addr = strtoul(arg2, NULL, 16);
-        for(int i = 0; i < N; i++){
+        for(i = 0; i < N; i++){
             swaddr_t addr = base_addr + i*4;
             uint32_t data = swaddr_read(addr, 4); // 读取4字节内容
             printf("0x%08x ", data);
