@@ -1,6 +1,6 @@
 #include "trap.h"
 
-int A[10];
+int A[10]; 
 int b;
 
 int main() {
